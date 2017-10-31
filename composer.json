@@ -19,7 +19,8 @@
         "yiisoft/yii2": "*",
 		"noam148/yii2-image-resize" : "*",
 		"kartik-v/yii2-widget-fileinput": "@dev",
-        "yiisoft/yii2-mongodb": "^2.1"
+        "yiisoft/yii2-mongodb": "^2.1",
+        "unclead/yii2-multiple-input": "~2.0"
     },
     "autoload": {
         "psr-4": {

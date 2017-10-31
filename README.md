@@ -78,7 +78,7 @@ echo $form->field($model, 'ImageManager_id_avatar')->widget(\noam148\imagemanage
     'cropViewMode' => 1, //crop mode, option info: https://github.com/fengyuanchen/cropper/#viewmode
 	'showPreview' => true, //false to hide the preview
 	'showDeletePickedImageConfirm' => false, //on true show warning before detach image
-	'multiply' => false,
+	'multiple' => false,
 ]);
 ```
 ![Image widget](/docs/images/img_doc-image-widget.jpg)

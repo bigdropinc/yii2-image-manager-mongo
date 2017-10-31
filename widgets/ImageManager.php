@@ -20,6 +20,8 @@ class ImageManager extends Widget
 
     public $viewMode;
 
+    public $multiple;
+
     public function run()
     {
         ImageManagerModuleAsset::register($this->view);
@@ -40,7 +42,7 @@ class ImageManager extends Widget
         $this->view->registerJs("imageManagerModule.cropRatio = '" . $request->get("aspect-ratio") . "';", 3);
         $this->view->registerJs("imageManagerModule.cropViewMode = '" . $request->get("crop-view-mode", 1) . "';", 3);
         $this->view->registerJs("imageManagerModule.selectType = '" . $this->selectType . "';", 3);
-        $this->view->registerJs("imageManagerModule.multiply = '" . $this->selectType . "';", 3);
+        $this->view->registerJs("imageManagerModule.multiple = " . ($this->multiple ? 'true' : 'false') . ";", 3);
         $this->view->registerJs("imageManagerModule.message = " . Json::encode([
                 'deleteMessage' => Yii::t('imagemanager', 'Are you sure you want to delete this image?'),
             ]) . ";", 3);

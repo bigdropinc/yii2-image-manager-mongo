@@ -4,9 +4,10 @@ var imageManagerModule = {
 	cropRatio: null,
 	cropViewMode: 1,
 	defaultImageId: null,
-	selectType: null, 
+	selectType: null,
+	multiple: null,
 	//current selected image
-	selectedImage: null,
+	selectedImage: [],
 	//language
 	message: null,
 	//init imageManager
@@ -39,14 +40,23 @@ var imageManagerModule = {
 	selectImage: function(id){
 		var $el = $("#module-imagemanager .item-overview .item[data-key='"+id+"']");
 
-		if ($el.hasClass('selected')) {
-            $el.removeClass("selected");
+		if (imageManagerModule.multiple) {
+            if ($el.hasClass('selected')) {
+                $el.removeClass("selected");
+                imageManagerModule.selectedImage.splice(id, 1);
+            } else {
+                imageManagerModule.select($el, id);
+            }
         } else {
-            $el.addClass("selected");
-
-            imageManagerModule.getDetails(id);
-        }
+            $("#module-imagemanager .item-overview .item").removeClass('selected');
+            imageManagerModule.select($el, id);
+		}
 	},
+	select: function ($el, id) {
+        $el.addClass("selected");
+
+        imageManagerModule.getDetails(id);
+    },
 	//pick the selected image
 	pickImage: function(){
 		//switch between select type
@@ -57,10 +67,20 @@ var imageManagerModule = {
 				var sFieldId = imageManagerModule.fieldId;
 				var sFieldNameId = sFieldId+"_name";
 				var sFieldImageId = sFieldId+"_image";
-				//set input data		
-				$('#'+sFieldId, window.parent.document).val(imageManagerModule.selectedImage.id);
-				$('#'+sFieldNameId, window.parent.document).val(imageManagerModule.selectedImage.fileName);
-				$('#'+sFieldImageId, window.parent.document).attr("src",imageManagerModule.selectedImage.image).parent().removeClass("hide");
+				//set input data
+
+				if (imageManagerModule.multiple) {
+                    imageManagerModule.selectedImage.forEach(function (item) {
+                        $('#' + sFieldId, window.parent.document).val(item.id);
+                        $('#' + sFieldNameId, window.parent.document).val(item.fileName);
+                        $('#' + sFieldImageId, window.parent.document).attr("src", item.image).parent().removeClass("hide");
+                    });
+                } else {
+                    $('#' + sFieldId, window.parent.document).val(imageManagerModule.selectedImage.id);
+                    $('#' + sFieldNameId, window.parent.document).val(imageManagerModule.selectedImage.fileName);
+                    $('#' + sFieldImageId, window.parent.document).attr("src", imageManagerModule.selectedImage.image).parent().removeClass("hide");
+				}
+
 				//trigger change
 				parent.$('#'+sFieldId).trigger('change');
 				//show delete button
@@ -160,7 +180,12 @@ var imageManagerModule = {
 			dataType: "json",
 			success: function (responseData, textStatus, jqXHR) {
 				//set imageManagerModule.selectedImage property
-				imageManagerModule.selectedImage = responseData; 
+
+				if (imageManagerModule.multiple) {
+                    imageManagerModule.selectedImage[responseData.id] = responseData;
+                } else {
+                    imageManagerModule.selectedImage = responseData;
+                }
 				
 				//if need to pick image?
 				if(pickAfterGetDetails){

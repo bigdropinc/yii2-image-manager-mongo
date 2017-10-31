@@ -33,7 +33,7 @@ class ImageManagerInput extends InputWidget
     public $showDeletePickedImageConfirm = false;
 
     /** @var bool */
-    public $multiply;
+    public $multiple;
 
     /**
      * @inheritdoc
@@ -83,7 +83,7 @@ class ImageManagerInput extends InputWidget
         //end input group
         $sHideClass = $ImageManager_id === null ? 'hide' : '';
         $field .= "<a href='#' class='input-group-addon btn btn-primary delete-selected-image " . $sHideClass . "' data-input-id='" . $sFieldId . "' data-show-delete-confirm='" . ($this->showDeletePickedImageConfirm ? "true" : "false") . "'><i class='glyphicon glyphicon-remove' aria-hidden='true'></i></a>";
-        $field .= "<a href='#' class='input-group-addon btn btn-primary open-modal-imagemanager' data-aspect-ratio='" . $this->aspectRatio . "' data-crop-view-mode='" . $this->cropViewMode . "' data-input-id='" . $sFieldId . "' data-multiply='" . $this->multiply . "''>";
+        $field .= "<a href='#' class='input-group-addon btn btn-primary open-modal-imagemanager' data-aspect-ratio='" . $this->aspectRatio . "' data-crop-view-mode='" . $this->cropViewMode . "' data-input-id='" . $sFieldId . "' data-multiple='" . $this->multiple . "''>";
         $field .= "<i class='glyphicon glyphicon-folder-open' aria-hidden='true'></i>";
         $field .= "</a></div>";
 

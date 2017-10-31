@@ -53,6 +53,7 @@ class ManagerController extends Controller
         $request = Yii::$app->request;
         $selectType = $request->get("select-type", "input");
         $viewMode = $request->get("view-mode", "page");
+        $multiple = (bool) $request->get("multiple", false);
 
         if ($viewMode == "iframe") {
             $this->layout = "blank";
@@ -61,6 +62,7 @@ class ManagerController extends Controller
         \noam148\imagemanager\widgets\ImageManager::widget([
             'selectType' => $selectType,
             'viewMode' => $viewMode,
+            'multiple' => $multiple,
         ]);
 
         $searchModel = new ImageManagerSearch();
