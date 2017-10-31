@@ -37,11 +37,15 @@ var imageManagerModule = {
 	},	
 	//select an image
 	selectImage: function(id){
-		//set selected class
-		$("#module-imagemanager .item-overview .item").removeClass("selected");
-		$("#module-imagemanager .item-overview .item[data-key='"+id+"']").addClass("selected");
-		//get details
-		imageManagerModule.getDetails(id);
+		var $el = $("#module-imagemanager .item-overview .item[data-key='"+id+"']");
+
+		if ($el.hasClass('selected')) {
+            $el.removeClass("selected");
+        } else {
+            $el.addClass("selected");
+
+            imageManagerModule.getDetails(id);
+        }
 	},
 	//pick the selected image
 	pickImage: function(){
@@ -73,10 +77,9 @@ var imageManagerModule = {
 					//call action by ajax
 					$.ajax({
 						url: imageManagerModule.baseUrl+"/get-original-image",
-						type: "POST",
+						type: "GET",
 						data: {
-							ImageManager_id: imageManagerModule.selectedImage.id,
-							_csrf: $('meta[name=csrf-token]').prop('content')
+							ImageManager_id: imageManagerModule.selectedImage.id
 						},
 						dataType: "json",
 						success: function (responseData, textStatus, jqXHR) {
@@ -115,10 +118,9 @@ var imageManagerModule = {
 				//call action by ajax
 				$.ajax({
 					url: imageManagerModule.baseUrl+"/delete",
-					type: "POST",
+					type: "DELETE",
 					data: {
-						ImageManager_id: imageManagerModule.selectedImage.id,
-						_csrf: $('meta[name=csrf-token]').prop('content')
+						ImageManager_id: imageManagerModule.selectedImage.id
 					},
 					dataType: "json",
 					success: function (responseData, textStatus, jqXHR) {
@@ -151,10 +153,9 @@ var imageManagerModule = {
 		//call action by ajax
 		$.ajax({
 			url: imageManagerModule.baseUrl+"/view",
-			type: "POST",
+			type: "GET",
 			data: {
-				ImageManager_id: id,
-				_csrf: $('meta[name=csrf-token]').prop('content')
+				ImageManager_id: id
 			},
 			dataType: "json",
 			success: function (responseData, textStatus, jqXHR) {
@@ -173,6 +174,7 @@ var imageManagerModule = {
 					$("#module-imagemanager .image-info .dimensions .dimension-width").text(responseData.dimensionWidth);
 					$("#module-imagemanager .image-info .dimensions .dimension-height").text(responseData.dimensionHeight);
 					$("#module-imagemanager .image-info .thumbnail").html("<img src='"+responseData.image+"' alt='"+responseData.fileName+"'/>");
+					$("#module-imagemanager .image-info .image-link").val(responseData.originalLink);
 					//remove hide class
 					$("#module-imagemanager .image-info").removeClass("hide");
 				}
@@ -210,10 +212,9 @@ var imageManagerModule = {
 				//call action by ajax
 				$.ajax({
 					url: imageManagerModule.baseUrl+"/get-original-image",
-					type: "POST",
+					type: "GET",
 					data: {
-						ImageManager_id: imageManagerModule.selectedImage.id,
-						_csrf: $('meta[name=csrf-token]').prop('content')
+						ImageManager_id: imageManagerModule.selectedImage.id
 					},
 					dataType: "json",
 					success: function (responseData, textStatus, jqXHR) {
@@ -289,9 +290,8 @@ $(document).ready(function () {
 	imageManagerModule.init();	
 	//on click select item (open view)
 	$(document).on("click", "#module-imagemanager .item-overview .item", function (){
-		//get id
 		var ImageManager_id = $(this).data("key");
-		//select image
+
 		imageManagerModule.selectImage(ImageManager_id);
 	});
 	//on click pick image
@@ -328,7 +328,31 @@ $(document).ready(function () {
 	$( document ).on("keyup change", "#input-mediamanager-search", function() {
 		imageManagerModule.filterImageResult($(this).val());
 	});
-	
+
+    $('.image-info .copy-link').click(function () {
+        var $this = $(this);
+
+        copyToClipboard($('.image-info .image-link')[0]);
+        $this.text('Copied');
+
+        setTimeout(function () {
+            $this.text('Copy');
+        }, 1000);
+    });
+
+    function copyToClipboard(elem) {
+        // select the content
+        var currentFocus = document.activeElement;
+        elem.focus();
+        elem.setSelectionRange(0, elem.value.length);
+
+        document.execCommand("copy");
+
+        // restore original focus
+        if (currentFocus && typeof currentFocus.focus === "function") {
+            currentFocus.focus();
+        }
+    }
 });
 
 /*

@@ -1,20 +1,25 @@
 {
-    "name": "noam148/yii2-image-manager",
-    "description": "A Yii2 module/widget for upload and cropping images",
-    "keywords": ["yii2", "extension", "widget", "module", "image", "upload", "crop", "manager"],
-    "homepage": "https://github.com/noam148/yii2-image-manager",
+    "name": "kolyasiryk/yii2-image-manager-mongo",
+    "description": "A Yii2 module/widget for upload and cropping images for MongoDB",
+    "keywords": ["yii2", "extension", "widget", "module", "image", "upload", "crop", "manager", "mongo"],
+    "homepage": "https://github.com/KolyaSirik/yii2-image-manager-mongo",
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
     "authors": [
         {
             "name": "Noam148",
 			"homepage": "https://github.com/noam148/" 
+        },
+        {
+            "name": "KolyaSirik",
+            "homepage": "https://github.com/KolyaSirik/"
         }
     ],
     "require": {
         "yiisoft/yii2": "*",
 		"noam148/yii2-image-resize" : "*",
-		"kartik-v/yii2-widget-fileinput": "@dev"
+		"kartik-v/yii2-widget-fileinput": "@dev",
+        "yiisoft/yii2-mongodb": "^2.1"
     },
     "autoload": {
         "psr-4": {
