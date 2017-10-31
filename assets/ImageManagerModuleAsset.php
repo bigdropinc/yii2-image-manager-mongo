@@ -7,7 +7,7 @@ use yii\web\AssetBundle;
  */
 class ImageManagerModuleAsset extends AssetBundle
 {
-    public $sourcePath = '@vendor/noam148/yii2-image-manager/assets/source';
+    public $sourcePath = '@vendor/kolyasiryk/yii2-image-manager-mongo/assets/source';
     public $css = [
 		'css/cropper.min.css',
 		'css/imagemanager.module.css',
