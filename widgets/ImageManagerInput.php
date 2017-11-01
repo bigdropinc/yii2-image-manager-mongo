@@ -36,6 +36,8 @@ class ImageManagerInput extends InputWidget
     /** @var bool */
     public $multiple;
 
+    public $models;
+
     /**
      * @inheritdoc
      */
@@ -94,19 +96,34 @@ class ImageManagerInput extends InputWidget
         if ($this->multiple) {
             echo "<a href='#' class='pull-right input-group-addon btn btn-primary open-modal-imagemanager' data-aspect-ratio='" . $this->aspectRatio . "' data-crop-view-mode='" . $this->cropViewMode . "' data-input-id='" . $sFieldId . "' data-multiple='" . $this->multiple . "''><i class='glyphicon glyphicon-folder-open' aria-hidden='true'></i></a>";
 
-            $models = ImageManager::find()
-                ->where(['_id' => ['$in' => $this->model->{$this->attribute}]])
-                ->all();
+            if (!$this->models) {
+                $ids = $this->model->{$this->attribute};
 
+                $images = $ids ? ImageManager::find()
+                    ->where(['_id' => ['$in' => $ids]])
+                    ->all() : [];
+
+                $models = [];
+                foreach ($images as $image) {
+                    $models[array_search($image->id, $ids)] = $image;
+                }
+
+                ksort($models);
+
+                $this->models = $models;
+            }
+
+            $i = 1;
             echo MultipleInput::widget([
-                'data' => array_map(function ($model) {
+                'data' => array_map(function ($model) use (&$i) {
                     /** @var ImageManager $model */
                     return [
                         'id' => $model->id,
                         'name' => $model->fileName,
                         'image' => \Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
+                        'order' => $i++,
                     ];
-                }, $models),
+                }, $this->models),
                 'model' => $this->model,
                 'attribute' => $this->attribute,
                 'allowEmptyList'    => true,
@@ -142,7 +159,16 @@ class ImageManagerInput extends InputWidget
                             return Html::img($data['image']);
                         },
                     ],
-                ]
+                    [
+                        'name' => 'order',
+                        'title' => 'Order',
+                        'options' => [
+                            'class' => 'image-order',
+                            'type' => 'number',
+                            'min' => 1,
+                        ],
+                    ],
+                ],
             ]);
             return;
         }

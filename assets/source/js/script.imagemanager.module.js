@@ -11,14 +11,21 @@ var imageManagerModule = {
 	//language
 	message: null,
 	//init imageManager
-	init: function(){
-		//init cropper
-		$('#module-imagemanager > .row .col-image-editor .image-cropper .image-wrapper img#image-cropper').cropper({
-			viewMode: imageManagerModule.cropViewMode
-		});
-		
-		//preselect image if image-id isset
-		if(imageManagerModule.defaultImageId !== ""){
+    init: function(){
+        //init cropper
+        $('#module-imagemanager > .row .col-image-editor .image-cropper .image-wrapper img#image-cropper').cropper({
+            viewMode: imageManagerModule.cropViewMode
+        });
+
+        imageManagerModule.selectDefault();
+
+        //set selected after pjax complete
+        $('#pjax-mediamanager').on('pjax:complete', function() {
+            imageManagerModule.selectDefault();
+        });
+    },
+    selectDefault: function () {
+        if(imageManagerModule.defaultImageId !== ""){
             if (imageManagerModule.multiple) {
                 $.each(imageManagerModule.defaultImageId.split(','), function (index, value) {
                     imageManagerModule.selectImage(value);
@@ -26,15 +33,8 @@ var imageManagerModule = {
             } else {
                 imageManagerModule.selectImage(imageManagerModule.defaultImageId);
             }
-		}
-		
-		//set selected after pjax complete
-		$('#pjax-mediamanager').on('pjax:complete', function() {
-			if(imageManagerModule.selectedImage !== null){
-				imageManagerModule.selectImage(imageManagerModule.selectedImage.id);
-			}
-		});
-	},
+        }
+    },
 	//filter result
 	filterImageResult: function(searchTerm){
 		//set new url
@@ -78,6 +78,7 @@ var imageManagerModule = {
 				if (imageManagerModule.multiple) {
 					$('.multiple-input-list__item', window.parent.document).remove();
 
+					var i = 1;
                     $.each(imageManagerModule.selectedImage, function (index, value) {
                         $('.js-input-plus', window.parent.document).click();
 
@@ -86,6 +87,7 @@ var imageManagerModule = {
                         $el.find('.image-id', window.parent.document).val(value.id);
                         $el.find('.image-name', window.parent.document).text(value.fileName);
                         $el.find('img', window.parent.document).attr("src", value.image);
+                        $el.find('.image-order', window.parent.document).val(i++);
 					});
                 } else {
                     $('#' + sFieldId, window.parent.document).val(imageManagerModule.selectedImage.id);

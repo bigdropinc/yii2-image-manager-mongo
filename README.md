@@ -79,6 +79,7 @@ echo $form->field($model, 'ImageManager_id_avatar')->widget(\noam148\imagemanage
 	'showPreview' => true, //false to hide the preview
 	'showDeletePickedImageConfirm' => false, //on true show warning before detach image
 	'multiple' => false,
+    'models' => $models, //selected models
 ]);
 ```
 ![Image widget](/docs/images/img_doc-image-widget.jpg)
