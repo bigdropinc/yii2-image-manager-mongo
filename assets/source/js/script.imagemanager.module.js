@@ -49,7 +49,7 @@ var imageManagerModule = {
 		if (imageManagerModule.multiple) {
             if ($el.hasClass('selected')) {
                 $el.removeClass("selected");
-                imageManagerModule.selectedImage.splice(id, 1);
+                delete imageManagerModule.selectedImage[id];
             } else {
                 imageManagerModule.select($el, id);
             }
