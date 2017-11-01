@@ -7,7 +7,7 @@ var imageManagerModule = {
 	selectType: null,
 	multiple: null,
 	//current selected image
-	selectedImage: [],
+	selectedImage: {},
 	//language
 	message: null,
 	//init imageManager
@@ -19,7 +19,13 @@ var imageManagerModule = {
 		
 		//preselect image if image-id isset
 		if(imageManagerModule.defaultImageId !== ""){
-			imageManagerModule.selectImage(imageManagerModule.defaultImageId);
+            if (imageManagerModule.multiple) {
+                $.each(imageManagerModule.defaultImageId.split(','), function (index, value) {
+                    imageManagerModule.selectImage(value);
+                });
+            } else {
+                imageManagerModule.selectImage(imageManagerModule.defaultImageId);
+            }
 		}
 		
 		//set selected after pjax complete
@@ -70,11 +76,17 @@ var imageManagerModule = {
 				//set input data
 
 				if (imageManagerModule.multiple) {
-                    imageManagerModule.selectedImage.forEach(function (item) {
-                        $('#' + sFieldId, window.parent.document).val(item.id);
-                        $('#' + sFieldNameId, window.parent.document).val(item.fileName);
-                        $('#' + sFieldImageId, window.parent.document).attr("src", item.image).parent().removeClass("hide");
-                    });
+					$('.multiple-input-list__item', window.parent.document).remove();
+
+                    $.each(imageManagerModule.selectedImage, function (index, value) {
+                        $('.js-input-plus', window.parent.document).click();
+
+                        var $el = $('.multiple-input-list__item', window.parent.document).last();
+
+                        $el.find('.image-id', window.parent.document).val(value.id);
+                        $el.find('.image-name', window.parent.document).val(value.fileName);
+                        $el.find('img', window.parent.document).attr("src", value.image);
+					});
                 } else {
                     $('#' + sFieldId, window.parent.document).val(imageManagerModule.selectedImage.id);
                     $('#' + sFieldNameId, window.parent.document).val(imageManagerModule.selectedImage.fileName);

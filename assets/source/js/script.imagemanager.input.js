@@ -33,10 +33,17 @@ var imageManagerInput = {
 	openModal: function(inputId, aspectRatio, cropViewMode, multiple){
 		//get selected item
 		var iImageId = $("#"+inputId).val();
-		var srcImageIdQueryString = "";
-		if(iImageId !== ""){
-			srcImageIdQueryString = "&image-id="+iImageId;
+		if (multiple) {
+			var ids = [];
+            $('.multiple-input-list__item').each(function () {
+				ids[ids.length] = $(this).find('input[type="hidden"]').val();
+            });
+
+            iImageId = ids.join(',');
 		}
+
+        var srcImageIdQueryString = iImageId !== "" ? "&image-id="+iImageId : "";
+
 		//create iframe url
 		var queryStringStartCharacter = ((imageManagerInput.baseUrl).indexOf('?') == -1) ? '?' : '&';
 		var imageManagerUrl = imageManagerInput.baseUrl+queryStringStartCharacter+"view-mode=iframe&input-id="+inputId+"&aspect-ratio="+aspectRatio+"&multiple="+multiple+"&crop-view-mode="+cropViewMode+srcImageIdQueryString;
@@ -95,5 +102,5 @@ $(document).ready(function () {
 		var inputId = $(this).data("input-id");
 		//open selector id
 		imageManagerInput.deletePickedImage(inputId);
-	});	
+	});
 });

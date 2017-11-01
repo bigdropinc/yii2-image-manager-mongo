@@ -2,6 +2,7 @@
 
 namespace noam148\imagemanager\widgets;
 
+use unclead\multipleinput\MultipleInput;
 use Yii;
 use yii\widgets\InputWidget;
 use yii\helpers\Html;
@@ -53,7 +54,8 @@ class ImageManagerInput extends InputWidget
     /**
      * @inheritdoc
      */
-    public function run() {
+    public function run()
+    {
         //default
         $ImageManager_id = null;
         $mImageManager = null;
@@ -87,6 +89,46 @@ class ImageManagerInput extends InputWidget
         $field .= "<i class='glyphicon glyphicon-folder-open' aria-hidden='true'></i>";
         $field .= "</a></div>";
 
+        $this->registerClientScript();
+
+        if ($this->multiple) {
+            echo "<a href='#' class='pull-right input-group-addon btn btn-primary open-modal-imagemanager' data-aspect-ratio='" . $this->aspectRatio . "' data-crop-view-mode='" . $this->cropViewMode . "' data-input-id='" . $sFieldId . "' data-multiple='" . $this->multiple . "''><i class='glyphicon glyphicon-folder-open' aria-hidden='true'></i></a>";
+            echo MultipleInput::widget([
+                'model' => $this->model,
+                'attribute' => $this->attribute,
+                'allowEmptyList'    => true,
+                'enableGuessTitle'  => true,
+                'addButtonPosition' => MultipleInput::POS_FOOTER,
+                'addButtonOptions' => [
+                    'class' => 'hidden',
+                ],
+                'columns' => [
+                    [
+                        'name' => 'id',
+                        'title' => 'Image',
+                        'type' => 'hiddenInput',
+                        'options' => [
+                            'class' => 'image-id',
+                        ],
+                    ],
+                    [
+                        'name' => 'name',
+                        'title' => 'Name',
+                        'options' => [
+                            'class' => 'image-name',
+                            'readonly' => ''
+                        ],
+                    ],
+                    [
+                        'name' => 'image',
+                        'title' => 'Image',
+                        'type' => 'img',
+                    ]
+                ]
+            ]);
+            return;
+        }
+
         //show preview if is true
         if ($this->showPreview == true) {
             $sHideClass = ($mImageManager == null) ? "hide" : "";
@@ -101,8 +143,6 @@ class ImageManagerInput extends InputWidget
         $field .= "</div>";
 
         echo $field;
-
-        $this->registerClientScript();
     }
 
     /**
