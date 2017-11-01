@@ -139,10 +139,11 @@ class ManagerController extends Controller
             'originalLink' => ImageHelper::getImageUrl($model),
             'image' => Yii::$app->imagemanager->getImagePath(
                     $model->id,
-                    400,
-                    400,
-                    "inset"
-                ) . "?t=" . time(),
+                    200,
+                    200,
+                    "inset",
+                    true
+                ),
         ];
     }
 

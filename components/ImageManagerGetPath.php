@@ -12,7 +12,6 @@ use yii\base\Component;
 use noam148\imagemanager\models\ImageManager as Model;
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;
-use yii\db\Connection;
 use yii\imagine\Image;
 use yii\web\UploadedFile;
 
@@ -69,22 +68,24 @@ class ImageManagerGetPath extends Component
         $this->_checkVariables();
 	}
 
-	/**
-	 * Get the path for the given ImageManager_id record
-	 * @param int $imageManagerId ImageManager record for which the path needs to be generated
-	 * @param int $width Thumbnail image width
-	 * @param int $height Thumbnail image height
-	 * @param string $thumbnailMode Thumbnail mode
-	 * @return null|string Full path is returned when image is found, null if no image could be found
-	 */
-    public function getImagePath($imageManagerId, $width = 400, $height = 400, $thumbnailMode = "outbound") {
-        if ($model = Model::findOne($imageManagerId)) {
+    /**
+     * Get the path for the given ImageManager_id record
+     * @param Model|int $model ImageManager record for which the path needs to be generated
+     * @param int $width Thumbnail image width
+     * @param int $height Thumbnail image height
+     * @param string $thumbnailMode Thumbnail mode
+     * @param bool $timestamp
+     * @return null|string Full path is returned when image is found, null if no image could be found
+     */
+    public function getImagePath($model, $width = 400, $height = 400, $thumbnailMode = "outbound", $timestamp = false) {
+        if (is_object($model) || (is_string($model) && ($model = Model::findOne($model)))) {
+            /** @var Model $model */
             $mode = $thumbnailMode == "outbound" ? "outbound" : "inset";
 
             $filePath = ImageHelper::getFilePath($model);
 
             if (file_exists($filePath)) {
-                return \Yii::$app->imageresize->getUrl($filePath, $width, $height, $mode, null, $model->fileName);
+                return \Yii::$app->imageresize->getUrl($filePath, $width, $height, $mode, null, $model->fileName) . ($timestamp ? "?t=" . time() : '');
             }
         }
 

@@ -93,7 +93,20 @@ class ImageManagerInput extends InputWidget
 
         if ($this->multiple) {
             echo "<a href='#' class='pull-right input-group-addon btn btn-primary open-modal-imagemanager' data-aspect-ratio='" . $this->aspectRatio . "' data-crop-view-mode='" . $this->cropViewMode . "' data-input-id='" . $sFieldId . "' data-multiple='" . $this->multiple . "''><i class='glyphicon glyphicon-folder-open' aria-hidden='true'></i></a>";
+
+            $models = ImageManager::find()
+                ->where(['_id' => ['$in' => $this->model->{$this->attribute}]])
+                ->all();
+
             echo MultipleInput::widget([
+                'data' => array_map(function ($model) {
+                    /** @var ImageManager $model */
+                    return [
+                        'id' => $model->id,
+                        'name' => $model->fileName,
+                        'image' => \Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
+                    ];
+                }, $models),
                 'model' => $this->model,
                 'attribute' => $this->attribute,
                 'allowEmptyList'    => true,
@@ -114,16 +127,21 @@ class ImageManagerInput extends InputWidget
                     [
                         'name' => 'name',
                         'title' => 'Name',
-                        'options' => [
-                            'class' => 'image-name',
-                            'readonly' => ''
-                        ],
+                        'type' => 'static',
+                        'value' => function ($data) {
+                            return Html::tag('p', $data['name'], [
+                                'class' => 'image-name',
+                            ]);
+                        },
                     ],
                     [
                         'name' => 'image',
                         'title' => 'Image',
-                        'type' => 'img',
-                    ]
+                        'type' => 'static',
+                        'value' => function ($data) {
+                            return Html::img($data['image']);
+                        },
+                    ],
                 ]
             ]);
             return;

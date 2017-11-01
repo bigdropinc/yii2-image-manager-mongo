@@ -84,7 +84,7 @@ var imageManagerModule = {
                         var $el = $('.multiple-input-list__item', window.parent.document).last();
 
                         $el.find('.image-id', window.parent.document).val(value.id);
-                        $el.find('.image-name', window.parent.document).val(value.fileName);
+                        $el.find('.image-name', window.parent.document).text(value.fileName);
                         $el.find('img', window.parent.document).attr("src", value.image);
 					});
                 } else {
