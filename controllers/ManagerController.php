@@ -157,14 +157,7 @@ class ManagerController extends Controller
 
         $model = $this->findModel(Yii::$app->request->get("ImageManager_id"));
 
-        $imageDetails = ImageHelper::getImageDetails($model);
-
-        return \Yii::$app->imagemanager->getImagePath(
-            $model->id,
-            $imageDetails['width'],
-            $imageDetails['height'],
-            "inset"
-        );
+        return ImageHelper::getImageUrl($model);
     }
 
 	/**
