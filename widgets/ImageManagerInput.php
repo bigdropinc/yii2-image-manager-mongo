@@ -179,7 +179,7 @@ class ImageManagerInput extends InputWidget
 
         //show preview if is true
         if ($this->showPreview == true) {
-            $sHideClass = ($mImageManager == null) ? "hide" : "";
+            $sHideClass = ($mImageManager == null) && !$this->previewImageUrl ? "hide" : "";
             $sImageSource = isset($mImageManager->id)
                 ? \Yii::$app->imagemanager->getImagePath($mImageManager->id, 500, 500, 'inset')
                 : $this->previewImageUrl;
