@@ -34,8 +34,12 @@ class ImageManagerInput extends InputWidget
     public $showDeletePickedImageConfirm = false;
 
     /** @var bool */
-    public $multiple;
+    public $multiple = false;
 
+    /** @var string */
+    public $previewImageUrl;
+
+    /** @var array */
     public $models;
 
     /**
@@ -176,7 +180,9 @@ class ImageManagerInput extends InputWidget
         //show preview if is true
         if ($this->showPreview == true) {
             $sHideClass = ($mImageManager == null) ? "hide" : "";
-            $sImageSource = isset($mImageManager->id) ? \Yii::$app->imagemanager->getImagePath($mImageManager->id, 500, 500, 'inset') : "";
+            $sImageSource = isset($mImageManager->id)
+                ? \Yii::$app->imagemanager->getImagePath($mImageManager->id, 500, 500, 'inset')
+                : $this->previewImageUrl;
 
             $field .= '<div class="image-wrapper ' . $sHideClass . '">'
                 . '<img id="' . $sFieldId . '_image" alt="Thumbnail" class="img-responsive img-preview" src="' . $sImageSource . '">'
