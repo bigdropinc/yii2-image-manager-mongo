@@ -94,7 +94,7 @@ class ImageHelper
      * @param string $alias
      * @return string
      */
-    public static function getPathByUrl($url, $alias = '@frontend')
+    public static function getPathByUrl($url, $alias = '@frontend/web')
     {
         $path = parse_url($url, PHP_URL_PATH);
 
