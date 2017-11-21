@@ -86,4 +86,18 @@ class ImageHelper
 
         return $return;
     }
+
+    /**
+     * Get image path by url
+     *
+     * @param string $url
+     * @param string $alias
+     * @return string
+     */
+    public static function getPathByUrl($url, $alias = '@frontend')
+    {
+        $path = parse_url($url, PHP_URL_PATH);
+
+        return $alias . $path;
+    }
 }
