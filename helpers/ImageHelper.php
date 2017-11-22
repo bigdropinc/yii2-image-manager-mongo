@@ -100,4 +100,23 @@ class ImageHelper
 
         return $alias . $path;
     }
+
+    /**
+     * Get thumb url by origin url
+     *
+     * @param string $url
+     * @param string $alias
+     * @param string $mode
+     * @param integer $width
+     * @param integer $height
+     * @return string
+     */
+    public static function getThumbByUrl($url, $width = 600, $height = 600, $mode = 'inset', $alias = '@frontend/web')
+    {
+        if (!$url) return null;
+
+        $path = self::getPathByUrl($url, $alias);
+
+        return file_exists(\Yii::getAlias($path)) ? \Yii::$app->imageresize->getUrl($path, $width, $height, $mode) : null;
+    }
 }
