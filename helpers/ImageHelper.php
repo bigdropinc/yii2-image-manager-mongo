@@ -46,6 +46,8 @@ class ImageHelper
      */
     public static function getImageUrl($model, $absolute = true)
     {
+        if (!$model) return null;
+
         $url = sprintf('%s/%s/%s',
             \Yii::$app->imagemanager->yiiMediaPath,
             self::getDir($model),
