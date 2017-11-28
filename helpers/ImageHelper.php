@@ -41,10 +41,10 @@ class ImageHelper
 
     /**
      * @param ImageManager $model
-     * @param bool $absolute
+     * @param string|bool|null $absolute
      * @return string
      */
-    public static function getImageUrl($model, $absolute = true)
+    public static function getImageUrl($model, $absolute = null)
     {
         if (!$model) return null;
 
@@ -53,7 +53,7 @@ class ImageHelper
             self::getDir($model),
             self::getFileName($model));
 
-        return Url::to($url, $absolute);
+        return Url::to($url, $absolute ?? \Yii::$app->imagemanager->absoluteUrl);
     }
 
     /**
