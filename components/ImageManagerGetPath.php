@@ -85,6 +85,16 @@ class ImageManagerGetPath extends Component
             $filePath = ImageHelper::getFilePath($model);
 
             if (file_exists($filePath)) {
+                if (pathinfo($model->fileName, PATHINFO_EXTENSION) === 'gif') {
+                    $newPath = \Yii::getAlias(sprintf('@web/%s/%s/%s', $this->cachePath, ImageHelper::getDir($model), ImageHelper::getFileName($model)));
+
+                    if (!file_exists($newPath)) {
+                        Image::getImagine()->open($filePath)->save($newPath);
+                    }
+
+                    $filePath = $newPath;
+                }
+
                 return \Yii::$app->imageresize->getUrl($filePath, $width, $height, $mode, null, $model->fileName) . ($timestamp ? "?t=" . time() : '');
             }
         }
@@ -236,7 +246,11 @@ class ImageManagerGetPath extends Component
                 $model->fileHash = Yii::$app->getSecurity()->generateRandomString(32);
 
                 if ($model->save()) {
-                    Image::getImagine()->open($file->tempName)->save(ImageHelper::getFilePath($model));
+                    if ($file->type === 'image/gif') {
+                        file_put_contents(ImageHelper::getFilePath($model), file_get_contents($file->tempName));
+                    } else {
+                        Image::getImagine()->open($file->tempName)->save(ImageHelper::getFilePath($model));
+                    }
                 }
             }
         }
