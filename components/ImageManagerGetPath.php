@@ -12,6 +12,7 @@ use yii\base\Component;
 use noam148\imagemanager\models\ImageManager as Model;
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;
+use yii\helpers\BaseFileHelper;
 use yii\imagine\Image;
 use yii\web\UploadedFile;
 
@@ -86,7 +87,10 @@ class ImageManagerGetPath extends Component
 
             if (file_exists($filePath)) {
                 if (pathinfo($model->fileName, PATHINFO_EXTENSION) === 'gif') {
-                    $newPath = \Yii::getAlias(sprintf('@web/%s/%s/%s', $this->cachePath, ImageHelper::getDir($model), ImageHelper::getFileName($model)));
+                    $dir = \Yii::getAlias(sprintf('@webroot/%s/%s', $this->cachePath, ImageHelper::getDir($model)));
+                    BaseFileHelper::createDirectory($dir);
+
+                    $newPath = sprintf('%s/%s', $dir, ImageHelper::getFileName($model));
 
                     if (!file_exists($newPath)) {
                         Image::getImagine()->open($filePath)->save($newPath);
