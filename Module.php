@@ -125,15 +125,5 @@ class Module extends \yii\base\Module {
         // Check if the deleteOriginalAfterEdit is boolean
         if (! is_bool($this->deleteOriginalAfterEdit))
             throw new InvalidConfigException('$deleteOriginalAfterEdit only supports boolean value, if you have a custom function make sure that your return a boolean.');
-
-		// Check if the blameable behavior is set to true
-        if ($this->setBlameableBehavior) {
-            // Get the migration record
-            $mRecordMigrationRun = Yii::$app->db->createCommand('SELECT * FROM {{%migration}} WHERE `version` = \'m170223_113221_addBlameableBehavior\'')->queryOne();
-            if ($mRecordMigrationRun === false) {
-                throw new InvalidConfigException('Image Manager: You have not run the latest migration, see the documentation how to do this.');
-            }
-        }
 	}
-
 }
