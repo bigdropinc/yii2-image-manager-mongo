@@ -37,10 +37,11 @@ class ImageManagerSearch extends ImageManager
      * Creates data provider instance with search query applied
      *
      * @param array $params
+     * @param bool $viewAll
      *
      * @return ActiveQuery
      */
-    public function search($params)
+    public function search($params, $viewAll = false)
     {
         $this->load($params);
 
@@ -48,7 +49,7 @@ class ImageManagerSearch extends ImageManager
 
         $module = Module::getInstance();
 
-        if ($module->setBlameableBehavior) {
+        if ($module->setBlameableBehavior && !$viewAll) {
             $query->andWhere(['createdBy' => Yii::$app->user->id]);
         }
 

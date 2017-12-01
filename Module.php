@@ -6,7 +6,6 @@ use Yii;
 use yii\base\UnknownClassException;
 use yii\base\InvalidConfigException;
 use yii\web\AssetManager;
-use noam148\imagemanager\assets\ImageManagerModuleAsset;
 
 /**
  * imagemanager module definition class
