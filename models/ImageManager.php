@@ -98,6 +98,7 @@ class ImageManager extends ActiveRecord
                 'class' => BlameableBehavior::className(),
                 'createdByAttribute' => 'createdBy',
                 'updatedByAttribute' => 'modifiedBy',
+                'value' => \Yii::$app->user->identity->_id,
             ];
         }
 
