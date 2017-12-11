@@ -6,6 +6,7 @@ use noam148\imagemanager\helpers\ImageHelper;
 use Yii;
 use noam148\imagemanager\models\ImageManager;
 use noam148\imagemanager\models\ImageManagerSearch;
+use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
 use yii\web\Response;
 use yii\web\Controller;
@@ -38,16 +39,21 @@ class ManagerController extends Controller
 	/**
 	 * @inheritdoc
 	 */
-	public function beforeAction($action) {
-		//disable CSRF Validation
-		$this->enableCsrfValidation = false;
+	public function beforeAction($action)
+    {
+		if ($this->action->id != 'index') {
+            Yii::$app->response->format = Response::FORMAT_JSON;
+        }
+
 		return parent::beforeAction($action);
 	}
 
-	/**
-	 * Lists all ImageManager models.
-	 * @return mixed
-	 */
+    /**
+     * Lists all ImageManager models.
+     *
+     * @return string
+     * @throws \Exception
+     */
     public function actionIndex()
     {
         $request = Yii::$app->request;
@@ -93,8 +99,6 @@ class ManagerController extends Controller
 	 */
     public function actionUpload()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
         if ($this->module->canUploadImage == false) {
             return [];
         }
@@ -104,27 +108,27 @@ class ManagerController extends Controller
         return $_FILES;
     }
 
-	/**
-	 * Crop image and create new ImageManager model.
-	 * @return mixed
-	 */
+    /**
+     * Crop image and create new ImageManager model.
+     *
+     * @return mixed
+     * @throws NotFoundHttpException
+     */
     public function actionCrop()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
+        $model = $this->findModel(Yii::$app->request->post("ImageManager_id"));
 
-        $modelOriginal = $this->findModel(Yii::$app->request->post("ImageManager_id"));
-
-        return Yii::$app->imagemanager->cropImage($modelOriginal, Yii::$app->request->post("CropData"));
+        return Yii::$app->imagemanager->cropImage($model, Yii::$app->request->post("CropData"));
     }
 
 	/**
 	 * Get view details
+     *
 	 * @return mixed
+     * @throws NotFoundHttpException|InvalidConfigException
 	 */
     public function actionView()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
         $model = $this->findModel(Yii::$app->request->get("ImageManager_id"));
 
         $imageDetails = ImageHelper::getImageDetails($model);
@@ -137,53 +141,41 @@ class ManagerController extends Controller
             'dimensionWidth' => $imageDetails['width'],
             'dimensionHeight' => $imageDetails['height'],
             'originalLink' => ImageHelper::getImageUrl($model),
-            'image' => Yii::$app->imagemanager->getImagePath(
-                    $model->id,
-                    200,
-                    200,
-                    "inset",
-                    true
-                ),
+            'image' => Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
         ];
     }
 
 	/**
 	 * Get full image
+     *
 	 * @return mixed
+     * @throws NotFoundHttpException
 	 */
     public function actionGetOriginalImage()
     {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
         $model = $this->findModel(Yii::$app->request->get("ImageManager_id"));
 
         return ImageHelper::getImageUrl($model);
     }
 
-	/**
-	 * Deletes an existing ImageManager model.
-	 * If deletion is successful, the browser will be redirected to the 'index' page.
-	 * @return mixed
-	 */
+    /**
+     * Deletes an existing ImageManager model.
+     * If deletion is successful, the browser will be redirected to the 'index' page.
+     *
+     * @return array
+     * @throws NotFoundHttpException|\Exception|\yii\db\StaleObjectException
+     */
 	public function actionDelete()
     {
-		//return 
 		$return = ['delete' => false];
-		//set response header
-		Yii::$app->getResponse()->format = Response::FORMAT_JSON;
 
 		if (Yii::$app->controller->module->canRemoveImage == false) {
-		    // User can not remove this image, return false status
 		    return $return;
 		}
 
-		//get post
-		$ImageManager_id = Yii::$app->request->post("ImageManager_id");
-		//get details
-		$model = $this->findModel($ImageManager_id);
+		$model = $this->findModel(Yii::$app->request->post("ImageManager_id"));
 
-		//delete record
-		if ($model->delete()) {
+		if ($model && $model->delete()) {
 			$return['delete'] = true;
 		}
 		return $return;
@@ -211,5 +203,4 @@ class ManagerController extends Controller
             throw new NotFoundHttpException(Yii::t('imagemanager', 'The requested image does not exist.'));
         }
     }
-
 }

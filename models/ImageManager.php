@@ -124,10 +124,28 @@ class ImageManager extends ActiveRecord
         }
     }
 
+    /**
+     * @param bool $insert
+     * @param array $changedAttributes
+     * @return void
+     * @throws \yii\base\Exception
+     */
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
 
         BaseFileHelper::createDirectory(ImageHelper::getPathToFile($this));
+    }
+
+    /**
+     * @param bool $insert
+     * @return bool
+     * @throws \yii\base\Exception
+     */
+    public function beforeSave($insert)
+    {
+        $this->fileHash = $this->fileHash ?? \Yii::$app->getSecurity()->generateRandomString(32);
+
+        return parent::beforeSave($insert);
     }
 }

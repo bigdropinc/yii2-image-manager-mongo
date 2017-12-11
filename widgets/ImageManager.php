@@ -16,12 +16,18 @@ use yii\helpers\Url;
  */
 class ImageManager extends Widget
 {
+    /** @var string */
     public $selectType;
 
+    /** @var string */
     public $viewMode;
 
+    /** @var bool */
     public $multiple;
 
+    /**
+     * @inheritdoc
+     */
     public function run()
     {
         ImageManagerModuleAsset::register($this->view);

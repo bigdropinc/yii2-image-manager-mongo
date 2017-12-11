@@ -10,7 +10,7 @@ use noam148\imagemanager\Module;
 use Yii;
 use yii\base\Component;
 use noam148\imagemanager\models\ImageManager as Model;
-use yii\base\ErrorException;
+use yii\base\Exception;
 use yii\base\InvalidConfigException;
 use yii\helpers\BaseFileHelper;
 use yii\imagine\Image;
@@ -47,12 +47,16 @@ class ImageManagerGetPath extends Component
      */
 	public $databaseComponent = 'mongodb';
 
-	/**
-	 * Init set config
-	 */
-	public function init() {
+    /**
+     * Init set config
+     *
+     * @return void
+     * @throws InvalidConfigException
+     */
+	public function init()
+    {
 		parent::init();
-		// initialize the compontent with the configuration loaded from config.php
+
 		\Yii::$app->set('imageresize', [
 			'class' => 'noam148\imageresize\ImageResize',
 			'cachePath' => $this->cachePath,
@@ -61,11 +65,9 @@ class ImageManagerGetPath extends Component
 		]);
 
 		if (is_callable($this->databaseComponent)) {
-		    // The database component is callable, run the user function
 		    $this->databaseComponent = call_user_func($this->databaseComponent);
         }
 
-        // Check if the user input is correct
         $this->_checkVariables();
 	}
 
@@ -77,8 +79,10 @@ class ImageManagerGetPath extends Component
      * @param string $thumbnailMode Thumbnail mode
      * @param bool $timestamp
      * @return null|string Full path is returned when image is found, null if no image could be found
+     * @throws Exception
      */
-    public function getImagePath($model, $width = 400, $height = 400, $thumbnailMode = "outbound", $timestamp = false) {
+    public function getImagePath($model, $width = 400, $height = 400, $thumbnailMode = "outbound", $timestamp = false)
+    {
         if (is_object($model) || (is_string($model) && ($model = Model::findOne($model)))) {
             /** @var Model $model */
             $mode = $thumbnailMode == "outbound" ? "outbound" : "inset";
@@ -110,13 +114,12 @@ class ImageManagerGetPath extends Component
      * Check if the user configurable variables match the criteria
      * @throws InvalidConfigException
      */
-	private function _checkVariables() {
-	    // Check to make sure that the $databaseComponent is a string
-        if (! is_string($this->databaseComponent)) {
+	private function _checkVariables()
+    {
+        if (!is_string($this->databaseComponent)) {
             throw new InvalidConfigException("Image Manager Component - Init: Database component '$this->databaseComponent' is not a string");
         }
 
-        // Check to make sure that the $databaseComponent object exists
         if (Yii::$app->get($this->databaseComponent, false) === null) {
             throw new InvalidConfigException("Image Manager Component - Init: Database component '$this->databaseComponent' does not exists in application configuration");
         }
@@ -124,106 +127,37 @@ class ImageManagerGetPath extends Component
 
     /**
      * @param Model $modelOriginal
-     * @param array $cropData
-     * @return string|null
+     * @param $cropData
+     * @return null|string
+     * @throws Exception
+     * @throws \Exception
+     * @throws \yii\db\StaleObjectException
      */
-    public function cropImage($modelOriginal, $cropData)
+    public function cropImage(Model $modelOriginal, $cropData)
     {
         $imagePathPrivate = ImageHelper::getFilePath($modelOriginal);
 
         if ($imagePathPrivate && $cropData) {
-            $iDimensionWidth = round($cropData['width']);
-            $iDimensionHeight = round($cropData['height']);
+            $width = round($cropData['width']);
+            $height = round($cropData['height']);
 
-            $sFileNameReplace = preg_replace("/_crop_\d+x\d+/", "", $modelOriginal->fileName);
-            $sFileName = pathinfo($sFileNameReplace, PATHINFO_FILENAME);
-            $sFileExtension = pathinfo($sFileNameReplace, PATHINFO_EXTENSION);
-            $sDisplayFileName = $sFileName . "_crop_" . $iDimensionWidth . "x" . $iDimensionHeight . "." . $sFileExtension;
-
-            //create a file record
-            $model = new Model();
-            $model->fileName = $sDisplayFileName;
-            $model->fileHash = Yii::$app->getSecurity()->generateRandomString(32);
+            $model = new Model([
+                'fileName' => ImageHelper::getCropFileName($modelOriginal, $width, $height),
+            ]);
 
             if ($model->save()) {
-                //do crop in try catch
                 try {
-                    // get current/original image data
                     $imageOriginal = Image::getImagine()->open($imagePathPrivate);
                     $imageOriginalSize = $imageOriginal->getSize();
-                    $imageOriginalWidth = $imageOriginalSize->getWidth();
-                    $imageOriginalHeight = $imageOriginalSize->getHeight();
-                    $imageOriginalPositionX = 0;
-                    $imageOriginalPositionY = 0;
 
-                    // create/calculate a canvas size (if canvas is out of the box)
-                    $imageCanvasWidth = $imageOriginalWidth;
-                    $imageCanvasHeight = $imageOriginalHeight;
+                    list($imageCanvasWidth, $imageOriginalPositionX, $imageCropPositionXRounded)
+                        = $this->handlingCropData($cropData['x'], $cropData['width'], $imageOriginalSize->getWidth());
+                    list($imageCanvasHeight, $imageOriginalPositionY, $imageCropPositionYRounded)
+                        = $this->handlingCropData($cropData['y'], $cropData['height'], $imageOriginalSize->getHeight());
 
-                    // update canvas width if X position of croparea is lower than 0
-                    if ($cropData['x'] < 0) {
-                        //set x postion to Absolute value
-                        $iAbsoluteXpos = abs($cropData['x']);
-                        //set x position of image
-                        $imageOriginalPositionX = $iAbsoluteXpos;
-                        //add x position to canvas size
-                        $imageCanvasWidth += $iAbsoluteXpos;
-                        //update canvas width if croparea is biger than original image
-                        $iCropWidthWithoutAbsoluteXpos = ($cropData['width'] - $iAbsoluteXpos);
-                        if ($iCropWidthWithoutAbsoluteXpos > $imageOriginalWidth) {
-                            //add ouside the box width
-                            $imageCanvasWidth += ($iCropWidthWithoutAbsoluteXpos - $imageOriginalWidth);
-                        }
-                    } else {
-                        // add if crop partly ouside image
-                        $iCropWidthWithXpos = ($cropData['width'] + $cropData['x']);
-                        if ($iCropWidthWithXpos > $imageOriginalWidth) {
-                            //add ouside the box width
-                            $imageCanvasWidth += ($iCropWidthWithXpos - $imageOriginalWidth);
-                        }
-                    }
-
-                    // update canvas height if Y position of croparea is lower than 0
-                    if ($cropData['y'] < 0) {
-                        //set y postion to Absolute value
-                        $iAbsoluteYpos = abs($cropData['y']);
-                        //set y position of image
-                        $imageOriginalPositionY = $iAbsoluteYpos;
-                        //add y position to canvas size
-                        $imageCanvasHeight += $iAbsoluteYpos;
-                        //update canvas height if croparea is biger than original image
-                        $iCropHeightWithoutAbsoluteYpos = ($cropData['height'] - $iAbsoluteYpos);
-                        if ($iCropHeightWithoutAbsoluteYpos > $imageOriginalHeight) {
-                            //add ouside the box height
-                            $imageCanvasHeight += ($iCropHeightWithoutAbsoluteYpos - $imageOriginalHeight);
-                        }
-                    } else {
-                        // add if crop partly ouside image
-                        $iCropHeightWithYpos = ($cropData['height'] + $cropData['y']);
-                        if ($iCropHeightWithYpos > $imageOriginalHeight) {
-                            //add ouside the box height
-                            $imageCanvasHeight += ($iCropHeightWithYpos - $imageOriginalHeight);
-                        }
-                    }
-
-                    // round values
-                    $imageCanvasWidthRounded = round($imageCanvasWidth);
-                    $imageCanvasHeightRounded = round($imageCanvasHeight);
-                    $imageOriginalPositionXRounded = round($imageOriginalPositionX);
-                    $imageOriginalPositionYRounded = round($imageOriginalPositionY);
-                    $imageCropWidthRounded = round($cropData['width']);
-                    $imageCropHeightRounded = round($cropData['height']);
-                    // set postion to 0 if x or y is less than 0
-                    $imageCropPositionXRounded = $cropData['x'] < 0 ? 0 : round($cropData['x']);
-                    $imageCropPositionYRounded = $cropData['y'] < 0 ? 0 : round($cropData['y']);
-
-                    // merge current image in canvas, crop image and save
-                    $imagineRgb = new RGB();
-                    $imagineColor = $imagineRgb->color('#FFF', 0);
-                    // create image
-                    Image::getImagine()->create(new Box($imageCanvasWidthRounded, $imageCanvasHeightRounded), $imagineColor)
-                        ->paste($imageOriginal, new Point($imageOriginalPositionXRounded, $imageOriginalPositionYRounded))
-                        ->crop(new Point($imageCropPositionXRounded, $imageCropPositionYRounded), new Box($imageCropWidthRounded, $imageCropHeightRounded))
+                    Image::getImagine()->create(new Box($imageCanvasWidth, $imageCanvasHeight), (new RGB())->color('#FFF', 0))
+                        ->paste($imageOriginal, new Point($imageOriginalPositionX, $imageOriginalPositionY))
+                        ->crop(new Point($imageCropPositionXRounded, $imageCropPositionYRounded), new Box($width, $height))
                         ->save(ImageHelper::getFilePath($model));
 
                     /** @var Module $module */
@@ -231,11 +165,47 @@ class ImageManagerGetPath extends Component
                     if ($module->deleteOriginalAfterEdit) {
                         $modelOriginal->delete();
                     }
-                } catch (ErrorException $e) {}
+                } catch (\Exception $e) {
+                    $model->delete();
+                }
             }
         }
 
         return isset($model) ? $model->id : null;
+    }
+
+    /**
+     * @param integer $coordinate
+     * @param integer $side
+     * @param integer $imageOriginalSide
+     * @return array
+     */
+    protected function handlingCropData($coordinate, $side, $imageOriginalSide)
+    {
+        $imageOriginalPosition = $imageCropPosition = 0;
+        $canvas = $imageOriginalSide;
+
+        if ($coordinate < 0) {
+            $absolutePos = abs($coordinate);
+            $imageOriginalPosition = $absolutePos;
+            $canvas += $absolutePos;
+            $cropWithoutAbsolutePos = $side - $absolutePos;
+            if ($cropWithoutAbsolutePos > $imageOriginalSide) {
+                $canvas += $cropWithoutAbsolutePos - $imageOriginalSide;
+            }
+        } else {
+            $imageCropPosition = round($coordinate);
+            $cropHeightWithPos = $side + $coordinate;
+            if ($cropHeightWithPos > $imageOriginalSide) {
+                $canvas += ($cropHeightWithPos - $imageOriginalSide);
+            }
+        }
+
+        return [
+            round($canvas),
+            round($imageOriginalPosition),
+            $imageCropPosition
+        ];
     }
 
     /**
@@ -245,9 +215,9 @@ class ImageManagerGetPath extends Component
     {
         foreach (UploadedFile::getInstancesByName('imagemanagerFiles') as $file) {
             if (!$file->error) {
-                $model = new Model();
-                $model->fileName = str_replace("_", "-", $file->name);
-                $model->fileHash = Yii::$app->getSecurity()->generateRandomString(32);
+                $model = new Model([
+                    'fileName' => str_replace("_", "-", $file->name),
+                ]);
 
                 if ($model->save()) {
                     if ($file->type === 'image/gif') {

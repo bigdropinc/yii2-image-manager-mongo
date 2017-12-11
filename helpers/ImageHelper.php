@@ -68,6 +68,21 @@ class ImageHelper
     }
 
     /**
+     * @param ImageManager $model
+     * @param integer $width
+     * @param integer $height
+     * @return string
+     */
+    public static function getCropFileName($model, $width, $height)
+    {
+        $fileNameReplace = preg_replace("/_crop_\d+x\d+/", "", $model->fileName);
+        $fileName = pathinfo($fileNameReplace, PATHINFO_FILENAME);
+        $fileExtension = pathinfo($fileNameReplace, PATHINFO_EXTENSION);
+
+        return sprintf('%s_crop_%sx%s.%s', $fileName, $width, $height, $fileExtension);
+    }
+
+    /**
      * Get image data dimension/size
      *
      * @param ImageManager $model

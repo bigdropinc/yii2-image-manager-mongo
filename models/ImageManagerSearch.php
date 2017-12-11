@@ -3,7 +3,6 @@
 namespace noam148\imagemanager\models;
 
 use Yii;
-use yii\base\Model;
 use noam148\imagemanager\Module;
 use yii\mongodb\ActiveQuery;
 
@@ -22,15 +21,6 @@ class ImageManagerSearch extends ImageManager
         return [
             [['globalSearch'], 'safe'],
         ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function scenarios()
-    {
-        // bypass scenarios() implementation in the parent class
-        return Model::scenarios();
     }
 
     /**
@@ -54,9 +44,9 @@ class ImageManagerSearch extends ImageManager
         }
 
         if ($this->globalSearch) {
-            $query->orFilterWhere(['fileName' => ['$regex' => $this->globalSearch, '$options' => 'i']])
-                ->orFilterWhere(['created' => ['$regex' => $this->globalSearch, '$options' => 'i']])
-                ->orFilterWhere(['modified' => ['$regex' => $this->globalSearch, '$options' => 'i']]);
+            $query->orWhere(['fileName' => ['$regex' => $this->globalSearch, '$options' => 'i']])
+                ->orWhere(['created' => ['$regex' => $this->globalSearch, '$options' => 'i']])
+                ->orWhere(['modified' => ['$regex' => $this->globalSearch, '$options' => 'i']]);
         }
 
         return $query;

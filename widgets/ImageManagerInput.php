@@ -45,9 +45,10 @@ class ImageManagerInput extends InputWidget
     /**
      * @inheritdoc
      */
-    public function init() {
+    public function init()
+    {
         parent::init();
-        //set language
+
         if (!isset(Yii::$app->i18n->translations['imagemanager'])) {
             Yii::$app->i18n->translations['imagemanager'] = [
                 'class' => 'yii\i18n\PhpMessageSource',
@@ -62,153 +63,190 @@ class ImageManagerInput extends InputWidget
      */
     public function run()
     {
-        //default
-        $ImageManager_id = null;
-        $mImageManager = null;
-        $sFieldId = null;
-        //start input group
-        $field = "<div class='image-manager-input'>";
-        $field .= "<div class='input-group'>";
-        //set input fields
-        if ($this->hasModel()) {
-            //get field id
-            $sFieldId = Html::getInputId($this->model, $this->attribute);
-            $sFieldNameId = $sFieldId . "_name";
-            //get attribute name
-            $sFieldAttributeName = Html::getAttributeName($this->attribute);
-            //get filename from selected file
-            $ImageManager_id = $this->model->{$sFieldAttributeName};
-            $mImageManager = ImageManager::findOne($ImageManager_id);
-
-            $ImageManager_fileName = $mImageManager ? $mImageManager->fileName : null;
-            //create field
-            $field .= Html::textInput($this->attribute, $ImageManager_fileName, ['class' => 'form-control', 'id' => $sFieldNameId, 'readonly' => true]);
-            $field .= Html::activeHiddenInput($this->model, $this->attribute, $this->options);
-        } else {
-            $field .= Html::textInput($this->name . "_name", null, ['readonly' => true]);
-            $field .= Html::hiddenInput($this->name, $this->value, $this->options);
-        }
-        //end input group
-        $sHideClass = $ImageManager_id === null ? 'hide' : '';
-        $field .= "<a href='#' class='input-group-addon btn btn-primary delete-selected-image " . $sHideClass . "' data-input-id='" . $sFieldId . "' data-show-delete-confirm='" . ($this->showDeletePickedImageConfirm ? "true" : "false") . "'><i class='glyphicon glyphicon-remove' aria-hidden='true'></i></a>";
-        $field .= "<a href='#' class='input-group-addon btn btn-primary open-modal-imagemanager' data-aspect-ratio='" . $this->aspectRatio . "' data-crop-view-mode='" . $this->cropViewMode . "' data-input-id='" . $sFieldId . "' data-multiple='" . $this->multiple . "''>";
-        $field .= "<i class='glyphicon glyphicon-folder-open' aria-hidden='true'></i>";
-        $field .= "</a></div>";
-
         $this->registerClientScript();
 
         if ($this->multiple) {
-            echo "<a href='#' class='pull-right input-group-addon btn btn-primary open-modal-imagemanager' data-aspect-ratio='" . $this->aspectRatio . "' data-crop-view-mode='" . $this->cropViewMode . "' data-input-id='" . $sFieldId . "' data-multiple='" . $this->multiple . "''><i class='glyphicon glyphicon-folder-open' aria-hidden='true'></i></a>";
-
-            if (!$this->models) {
-                $ids = $this->model->{$this->attribute};
-
-                $images = $ids ? ImageManager::find()
-                    ->where(['_id' => ['$in' => $ids]])
-                    ->all() : [];
-
-                $models = [];
-                foreach ($images as $image) {
-                    $models[array_search($image->id, $ids)] = $image;
-                }
-
-                ksort($models);
-
-                $this->models = $models;
-            }
-
-            $i = 1;
-            echo MultipleInput::widget([
-                'data' => array_map(function ($model) use (&$i) {
-                    /** @var ImageManager $model */
-                    return [
-                        'id' => $model->id,
-                        'name' => $model->fileName,
-                        'image' => \Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
-                        'order' => $i++,
-                    ];
-                }, $this->models),
-                'model' => $this->model,
-                'attribute' => $this->attribute,
-                'allowEmptyList'    => true,
-                'enableGuessTitle'  => true,
-                'addButtonPosition' => MultipleInput::POS_FOOTER,
-                'addButtonOptions' => [
-                    'class' => 'hidden',
-                ],
-                'columns' => [
-                    [
-                        'name' => 'id',
-                        'title' => 'Image',
-                        'type' => 'hiddenInput',
-                        'options' => [
-                            'class' => 'image-id',
-                        ],
-                    ],
-                    [
-                        'name' => 'name',
-                        'title' => 'Name',
-                        'type' => 'static',
-                        'value' => function ($data) {
-                            return Html::tag('p', $data['name'], [
-                                'class' => 'image-name',
-                            ]);
-                        },
-                    ],
-                    [
-                        'name' => 'image',
-                        'title' => 'Image',
-                        'type' => 'static',
-                        'value' => function ($data) {
-                            return Html::img($data['image']);
-                        },
-                    ],
-                    [
-                        'name' => 'order',
-                        'title' => 'Order',
-                        'options' => [
-                            'class' => 'image-order',
-                            'type' => 'number',
-                            'min' => 1,
-                        ],
-                    ],
-                ],
-            ]);
-            return;
+            return $this->renderMultiplyInput();
         }
 
-        //show preview if is true
-        if ($this->showPreview == true) {
-            $sHideClass = ($mImageManager == null) && !$this->previewImageUrl ? "hide" : "";
-            $sImageSource = isset($mImageManager->id)
-                ? \Yii::$app->imagemanager->getImagePath($mImageManager->id, 500, 500, 'inset')
+        return $this->renderSingeImageInput();
+    }
+
+    /**
+     * @return null|string
+     */
+    protected function getFieldId()
+    {
+        return $this->hasModel() ? Html::getInputId($this->model, $this->attribute) : null;
+    }
+
+    /**
+     * @return mixed|null
+     */
+    protected function getImageId()
+    {
+        $fieldAttributeName = Html::getAttributeName($this->attribute);
+
+        return $this->hasModel() ? $this->model->{$fieldAttributeName} : null;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getModalOpenBtn()
+    {
+        return Html::a('<i class="glyphicon glyphicon-folder-open" aria-hidden="true"></i>', '#', [
+            'class' => 'pull-right input-group-addon btn btn-primary open-modal-imagemanager',
+            'data-aspect-ratio' => $this->aspectRatio,
+            'data-crop-view-mode' => $this->cropViewMode,
+            'data-input-id' => $this->getFieldId(),
+            'data-multiple' => $this->multiple,
+        ]);
+    }
+
+    /**
+     * @return string
+     */
+    protected function getDeleteImageBtn()
+    {
+        return Html::a('<i class="glyphicon glyphicon-remove" aria-hidden="true"></i>', '#', [
+            'class' => 'input-group-addon btn btn-primary delete-selected-image ' . (!$this->getImageId() ? 'hide' : ''),
+            'data-input-id' => $this->getFieldId(),
+            'data-show-delete-confirm' => $this->showDeletePickedImageConfirm ? 'true' : 'false',
+        ]);
+    }
+
+    /**
+     * @return string
+     */
+    protected function renderSingeImageInput()
+    {
+        if ($this->hasModel()) {
+            $model = ImageManager::findOne($this->getImageId());
+
+            $input = Html::textInput($this->attribute, $model ? $model->fileName : null, [
+                'class' => 'form-control',
+                'id' => $this->getFieldId() . '_name',
+                'readonly' => true
+            ]);
+            $input .= Html::activeHiddenInput($this->model, $this->attribute, $this->options);
+        } else {
+            $input = Html::textInput($this->name . '_name', null, ['readonly' => true]);
+            $input .= Html::hiddenInput($this->name, $this->value, $this->options);
+        }
+
+        $field = Html::tag('div', $input . $this->getDeleteImageBtn() . $this->getModalOpenBtn(), ['class' => 'input-group']);
+
+        if ($this->showPreview) {
+            $imageSource = isset($model)
+                ? \Yii::$app->imagemanager->getImagePath($model->id, 500, 500, 'inset')
                 : $this->previewImageUrl;
 
-            $field .= '<div class="image-wrapper ' . $sHideClass . '">'
-                . '<img id="' . $sFieldId . '_image" alt="Thumbnail" class="img-responsive img-preview" src="' . $sImageSource . '">'
-                . '</div>';
+            $field .= Html::tag('div', Html::img($imageSource, [
+                'id' => $this->getFieldId() . '_image',
+                'alt' => 'Thumbnail',
+                'class' => 'img-responsive img-preview',
+            ]), ['class' => 'image-wrapper ' . isset($model) && !$this->previewImageUrl ? 'hide' : '']);
         }
 
-        //close image-manager-input div
-        $field .= "</div>";
+        return Html::tag('div', $field, ['class' => 'image-manager-input']);
+    }
 
-        echo $field;
+    /**
+     * @return string
+     * @throws \Exception
+     */
+    protected function renderMultiplyInput()
+    {
+        if (!$this->models) {
+            $ids = $this->model->{$this->attribute};
+
+            $images = $ids ? ImageManager::find()
+                ->where(['_id' => ['$in' => $ids]])
+                ->all() : [];
+
+            $models = [];
+            foreach ($images as $image) {
+                $models[array_search($image->id, $ids)] = $image;
+            }
+
+            ksort($models);
+
+            $this->models = $models;
+        }
+
+        $i = 1;
+        return $this->getModalOpenBtn() . MultipleInput::widget([
+            'data' => array_map(function ($model) use (&$i) {
+                /** @var ImageManager $model */
+                return [
+                    'id' => $model->id,
+                    'name' => $model->fileName,
+                    'image' => \Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
+                    'order' => $i++,
+                ];
+            }, $this->models),
+            'model' => $this->model,
+            'attribute' => $this->attribute,
+            'allowEmptyList'    => true,
+            'enableGuessTitle'  => true,
+            'addButtonPosition' => MultipleInput::POS_FOOTER,
+            'addButtonOptions' => [
+                'class' => 'hidden',
+            ],
+            'columns' => [
+                [
+                    'name' => 'id',
+                    'title' => 'Image',
+                    'type' => 'hiddenInput',
+                    'options' => [
+                        'class' => 'image-id',
+                    ],
+                ],
+                [
+                    'name' => 'name',
+                    'title' => 'Name',
+                    'type' => 'static',
+                    'value' => function ($data) {
+                        return Html::tag('p', $data['name'], [
+                            'class' => 'image-name',
+                        ]);
+                    },
+                ],
+                [
+                    'name' => 'image',
+                    'title' => 'Image',
+                    'type' => 'static',
+                    'value' => function ($data) {
+                        return Html::img($data['image']);
+                    },
+                ],
+                [
+                    'name' => 'order',
+                    'title' => 'Order',
+                    'options' => [
+                        'class' => 'image-order',
+                        'type' => 'number',
+                        'min' => 1,
+                    ],
+                ],
+            ],
+        ]);
     }
 
     /**
      * Registers js Input
+     *
+     * @return void
      */
-    public function registerClientScript() {
-        $view = $this->getView();
-        ImageManagerInputAsset::register($view);
+    public function registerClientScript()
+    {
+        ImageManagerInputAsset::register($this->view);
 
-        //set baseUrl from image manager
-        $sBaseUrl = Url::to(['/imagemanager/manager']);
-        //set base url
-        $view->registerJs("imageManagerInput.baseUrl = '" . $sBaseUrl . "';");
-        $view->registerJs("imageManagerInput.message = " . Json::encode([
-                    'imageManager' => Yii::t('imagemanager','Image manager'),
-                    'detachWarningMessage' => Yii::t('imagemanager', 'Are you sure you want to detach the image?'),
-                ]) . ";");
+        $this->view->registerJs("imageManagerInput.baseUrl = '" . Url::to(['/imagemanager/manager']) . "';");
+        $this->view->registerJs("imageManagerInput.message = " . Json::encode([
+                'imageManager' => Yii::t('imagemanager','Image manager'),
+                'detachWarningMessage' => Yii::t('imagemanager', 'Are you sure you want to detach the image?'),
+            ]) . ";");
     }
 }
