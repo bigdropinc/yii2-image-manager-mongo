@@ -100,7 +100,7 @@ class ImageManagerInput extends InputWidget
             'data-aspect-ratio' => $this->aspectRatio,
             'data-crop-view-mode' => $this->cropViewMode,
             'data-input-id' => $this->getFieldId(),
-            'data-multiple' => $this->multiple,
+            'data-multiple' => $this->multiple ? 'true' : '',
         ]);
     }
 
@@ -146,7 +146,7 @@ class ImageManagerInput extends InputWidget
                 'id' => $this->getFieldId() . '_image',
                 'alt' => 'Thumbnail',
                 'class' => 'img-responsive img-preview',
-            ]), ['class' => 'image-wrapper ' . isset($model) && !$this->previewImageUrl ? 'hide' : '']);
+            ]), ['class' => 'image-wrapper ' . (!isset($model) && !$this->previewImageUrl ? 'hide' : '')]);
         }
 
         return Html::tag('div', $field, ['class' => 'image-manager-input']);
