@@ -105,7 +105,7 @@ class ManagerController extends Controller
 
         Yii::$app->imagemanager->uploadImage();
 
-        return $_FILES;
+        return $this->redirect(['/imagemanager']);
     }
 
     /**
@@ -141,6 +141,7 @@ class ManagerController extends Controller
             'dimensionWidth' => $imageDetails['width'],
             'dimensionHeight' => $imageDetails['height'],
             'originalLink' => ImageHelper::getImageUrl($model),
+            'tags' => implode(', ', $model->tags ?? []),
             'image' => Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
         ];
     }

@@ -208,7 +208,7 @@ var imageManagerModule = {
 				}else{
 					//set text elements
 					$("#module-imagemanager .image-info .fileName").text(responseData.fileName).attr("title",responseData.fileName);
-					$("#module-imagemanager .image-info .created").text(responseData.created);
+                    $("#module-imagemanager .image-info .tags").text('Tags: ' + responseData.tags);					$("#module-imagemanager .image-info .created").text(responseData.created);
 					$("#module-imagemanager .image-info .fileSize").text(responseData.fileSize);
 					$("#module-imagemanager .image-info .dimensions .dimension-width").text(responseData.dimensionWidth);
 					$("#module-imagemanager .image-info .dimensions .dimension-height").text(responseData.dimensionHeight);

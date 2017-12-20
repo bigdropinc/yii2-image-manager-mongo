@@ -5,6 +5,9 @@ use yii\widgets\ListView;
 use yii\widgets\Pjax;
 use kartik\file\FileInput;
 use yii\data\ActiveDataProvider;
+use yii\bootstrap\Modal;
+use yii\bootstrap\ActiveForm;
+use kartik\select2\Select2;
 
 /**
  * @var string $selectType
@@ -65,33 +68,68 @@ $this->title = Yii::t('imagemanager','Image manager');
 
             <?php if ($canUploadImage):?>
 
+                <?php Modal::begin([
+                    'header'=>'File Input inside Modal',
+                    'toggleButton' => [
+                        'label'=>'Upload', 'class'=>'btn btn-primary btn-block'
+                    ],
+                    'options' => ['tabindex' => null]
+                ]); ?>
+
+                <?php $form = ActiveForm::begin([
+                    'action' => Url::to(['manager/upload']),
+                    'options'=>['enctype'=>'multipart/form-data']
+                ]); ?>
+
+                <div class="form-group">
+                    <?= Html::label('Tags', 'tags') ?>
+                    <?= Select2::widget([
+                        'name' => 'tags',
+                        'theme' => Select2::THEME_BOOTSTRAP,
+                        'options' => [
+                            'placeholder' => 'Enter tags...',
+                            'id' => 'w' . $form->getId(),
+                        ],
+                        'pluginOptions' => [
+                            'tags' => true,
+                            'multiple' => true,
+                        ],
+                    ]) ?>
+                </div>
+
                 <?= FileInput::widget([
-                    'name' => 'imagemanagerFiles[]',
-                    'id' => 'imagemanager-files',
-                    'options' => [
-                        'multiple' => true,
-                        'accept' => 'image/*'
-                    ],
-                    'pluginOptions' => [
-                        'uploadUrl' => Url::to(['manager/upload']),
-                        'allowedFileExtensions' => $allowedFileExtensions,
-                        'uploadAsync' => false,
-                        'showPreview' => false,
-                        'showRemove' => false,
-                        'showUpload' => false,
-                        'showCancel' => false,
-                        'browseClass' => 'btn btn-primary btn-block',
-                        'browseIcon' => '<i class="fa fa-upload"></i> ',
-                        'browseLabel' => Yii::t('imagemanager','Upload')
-                    ],
-                    'pluginEvents' => [
-                        "filebatchselected" => "function(event, files){  $('.msg-invalid-file-extension').addClass('hide'); $(this).fileinput('upload'); }",
-                        "filebatchuploadsuccess" => "function(event, data, previewId, index) {
-						imageManagerModule.uploadSuccess(data.jqXHR.responseJSON.imagemanagerFiles);
-					}",
-                        "fileuploaderror" => "function(event, data) { $('.msg-invalid-file-extension').removeClass('hide'); }",
-                    ],
-                ]) ?>
+                'name' => 'imagemanagerFiles[]',
+                'id' => 'imagemanager-files',
+                'options' => [
+                    'multiple' => true,
+                    'accept' => 'image/*'
+                ],
+                'pluginOptions' => [
+//                        'uploadUrl' => Url::to(['manager/upload']),
+                    'allowedFileExtensions' => $allowedFileExtensions,
+//                        'uploadAsync' => false,
+//                        'showPreview' => false,
+                    'showRemove' => false,
+                    'showUpload' => false,
+                    'showCaption' => false,
+                    'showCancel' => false,
+                    'browseClass' => 'btn btn-primary btn-block',
+                    'browseIcon' => '<i class="fa fa-upload"></i> ',
+                    'browseLabel' => 'Select photos',
+                ],
+//                    'pluginEvents' => [
+//                        "filebatchselected" => "function(event, files){  $('.msg-invalid-file-extension').addClass('hide'); $(this).fileinput('upload'); }",
+//                        "filebatchuploadsuccess" => "function(event, data, previewId, index) {
+//						imageManagerModule.uploadSuccess(data.jqXHR.responseJSON.imagemanagerFiles);
+//					}",
+//                        "fileuploaderror" => "function(event, data) { $('.msg-invalid-file-extension').removeClass('hide'); }",
+//                    ],
+            ]) ?>
+                <br>
+                <?= Html::submitButton('Upload', ['class' => 'btn btn-primary btn-block']) ?>
+
+                <?php ActiveForm::end() ?>
+                <?php Modal::end() ?>
 
             <?php endif; ?>
 
@@ -111,6 +149,7 @@ $this->title = Yii::t('imagemanager','Image manager');
                         <input title="" type="text" class="form-control image-link" readonly>
                     </div>
                     <div class="fileName"></div>
+                    <div class="tags"></div>
                     <div class="created"></div>
                     <div class="fileSize"></div>
                     <div class="dimensions"><span class="dimension-width"></span> &times; <span class="dimension-height"></span></div>
@@ -124,4 +163,4 @@ $this->title = Yii::t('imagemanager','Image manager');
             </div>
         </div>
     </div>
-</div>  
+</div>

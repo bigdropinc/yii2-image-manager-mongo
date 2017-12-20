@@ -210,14 +210,18 @@ class ImageManagerGetPath extends Component
 
     /**
      * @return void
+     * @throws Exception
      */
     public function uploadImage()
     {
+        $tags = \Yii::$app->request->post('tags', []);
+
         foreach (UploadedFile::getInstancesByName('imagemanagerFiles') as $file) {
             if (!$file->error) {
-                $model = new Model([
-                    'fileName' => str_replace("_", "-", $file->name),
-                ]);
+                $model = new Model();
+                $model->fileName = str_replace("_", "-", $file->name);
+                $model->fileHash = Yii::$app->getSecurity()->generateRandomString(32);
+                $model->tags = $tags;
 
                 if ($model->save()) {
                     if ($file->type === 'image/gif') {

@@ -46,7 +46,8 @@ class ImageManagerSearch extends ImageManager
         if ($this->globalSearch) {
             $query->orWhere(['fileName' => ['$regex' => $this->globalSearch, '$options' => 'i']])
                 ->orWhere(['created' => ['$regex' => $this->globalSearch, '$options' => 'i']])
-                ->orWhere(['modified' => ['$regex' => $this->globalSearch, '$options' => 'i']]);
+                ->orWhere(['modified' => ['$regex' => $this->globalSearch, '$options' => 'i']])
+                ->orWhere(['tags' => $this->globalSearch]);
         }
 
         return $query;

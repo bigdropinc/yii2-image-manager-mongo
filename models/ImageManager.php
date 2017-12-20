@@ -23,6 +23,7 @@ use Yii;
  * @property int $modified
  * @property ObjectID $createdBy
  * @property ObjectID $modifiedBy
+ * @property array $tags
  */
 class ImageManager extends ActiveRecord
 {
@@ -47,6 +48,7 @@ class ImageManager extends ActiveRecord
             'modified',
             'createdBy',
             'modifiedBy',
+            'tags',
         ];
     }
 
