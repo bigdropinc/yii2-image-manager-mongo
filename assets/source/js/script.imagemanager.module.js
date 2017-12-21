@@ -182,6 +182,8 @@ var imageManagerModule = {
 	},
 	//get image details
 	getDetails: function(id, pickAfterGetDetails){
+        var blockId = '#module-imagemanager .image-info';
+
 		//set propertie if not set
 		pickAfterGetDetails = pickAfterGetDetails !== undefined ? pickAfterGetDetails : false;
 		//call action by ajax
@@ -189,7 +191,8 @@ var imageManagerModule = {
 			url: imageManagerModule.baseUrl+"/view",
 			type: "GET",
 			data: {
-				ImageManager_id: id
+				ImageManager_id: id,
+                id: $(blockId + " .tags").data('id')
 			},
 			dataType: "json",
 			success: function (responseData, textStatus, jqXHR) {
@@ -207,15 +210,17 @@ var imageManagerModule = {
 				//else set data
 				}else{
 					//set text elements
-					$("#module-imagemanager .image-info .fileName").text(responseData.fileName).attr("title",responseData.fileName);
-                    $("#module-imagemanager .image-info .tags").text('Tags: ' + responseData.tags);					$("#module-imagemanager .image-info .created").text(responseData.created);
-					$("#module-imagemanager .image-info .fileSize").text(responseData.fileSize);
-					$("#module-imagemanager .image-info .dimensions .dimension-width").text(responseData.dimensionWidth);
-					$("#module-imagemanager .image-info .dimensions .dimension-height").text(responseData.dimensionHeight);
-					$("#module-imagemanager .image-info .thumbnail").html("<img src='"+responseData.image+"' alt='"+responseData.fileName+"'/>");
-					$("#module-imagemanager .image-info .image-link").val(responseData.originalLink);
+                    $(blockId + " #model-id").val(responseData.id);
+					$(blockId + " .fileName").text(responseData.fileName).attr("title",responseData.fileName);
+                    $(blockId + " .tags").html(responseData.tags);
+                    $(blockId + " .created").text(responseData.created);
+					$(blockId + " .fileSize").text(responseData.fileSize);
+					$(blockId + " .dimensions .dimension-width").text(responseData.dimensionWidth);
+					$(blockId + " .dimensions .dimension-height").text(responseData.dimensionHeight);
+					$(blockId + " .thumbnail").html("<img src='"+responseData.image+"' alt='"+responseData.fileName+"'/>");
+					$(blockId + " .image-link").val(responseData.originalLink);
 					//remove hide class
-					$("#module-imagemanager .image-info").removeClass("hide");
+					$(blockId).removeClass("hide");
 				}
 			},
 			error: function (jqXHR, textStatus, errorThrown) {
@@ -320,7 +325,38 @@ var imageManagerModule = {
 			}else{
 				alert("Error: image can't crop, no image isset set");
 			}
-		}
+		},
+        updateTags: function (modelId) {
+            var tags = [];
+
+            $.each($("#select-tags :selected"), function (key, el) {
+                tags[tags.length] = $(el).text();
+            });
+
+            $.ajax({
+                url: imageManagerModule.baseUrl + "/update-tags",
+                type: "POST",
+                data: {
+                    modelId: modelId,
+                    tags: tags
+                },
+                dataType: "json",
+                success: function (responseData) {
+                    if (responseData.result) {
+                        $('#update-tags').addClass('btn-success');
+
+                        setTimeout(function () {
+                            $('#update-tags').removeClass('btn-success');
+                        }, 1000);
+                    } else {
+                        alert("Error: tags is not updated");
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert("Error: tags is not updated");
+                }
+            });
+        }
 	}
 };
 
@@ -377,6 +413,10 @@ $(document).ready(function () {
         setTimeout(function () {
             $this.text('Copy');
         }, 1000);
+    });
+
+    $('#update-tags').click(function () {
+        imageManagerModule.editor.updateTags($('#model-id').val());
     });
 
     function copyToClipboard(elem) {

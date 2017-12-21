@@ -2,12 +2,14 @@
 
 namespace noam148\imagemanager\controllers;
 
+use kartik\select2\Select2;
 use noam148\imagemanager\helpers\ImageHelper;
 use Yii;
 use noam148\imagemanager\models\ImageManager;
 use noam148\imagemanager\models\ImageManagerSearch;
 use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
+use yii\helpers\Html;
 use yii\web\Response;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -125,9 +127,9 @@ class ManagerController extends Controller
 	 * Get view details
      *
 	 * @return mixed
-     * @throws NotFoundHttpException|InvalidConfigException
+     * @throws NotFoundHttpException|InvalidConfigException|\Exception
 	 */
-    public function actionView()
+    public function actionView($id)
     {
         $model = $this->findModel(Yii::$app->request->get("ImageManager_id"));
 
@@ -141,9 +143,34 @@ class ManagerController extends Controller
             'dimensionWidth' => $imageDetails['width'],
             'dimensionHeight' => $imageDetails['height'],
             'originalLink' => ImageHelper::getImageUrl($model),
-            'tags' => implode(', ', $model->tags ?? []),
+            'tags' => Select2::widget([
+                    'value' => $model->tags ?? [],
+                    'name' => 'imageTags',
+                    'theme' => Select2::THEME_BOOTSTRAP,
+                    'options' => [
+                        'placeholder' => 'Enter tags...',
+                        'id' => $id,
+                    ],
+                    'pluginOptions' => [
+                        'tags' => true,
+                        'multiple' => true,
+                    ],
+                ]) . Html::script(implode('', array_map('implode', $this->view->js))),
             'image' => Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
         ];
+    }
+
+    /**
+     * @return array
+     * @throws NotFoundHttpException
+     */
+    public function actionUpdateTags()
+    {
+        $model = $this->findModel(Yii::$app->request->post("modelId"));
+
+        $model->tags = Yii::$app->request->post('tags');
+
+        return ['result' => $model->save()];
     }
 
 	/**

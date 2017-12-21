@@ -134,6 +134,7 @@ $this->title = Yii::t('imagemanager','Image manager');
             <?php endif; ?>
 
             <div class="image-info hide">
+                <?= Html::hiddenInput('modelId', '', ['id' => 'model-id']) ?>
                 <div class="thumbnail">
                     <img src="#">
                 </div>
@@ -149,7 +150,13 @@ $this->title = Yii::t('imagemanager','Image manager');
                         <input title="" type="text" class="form-control image-link" readonly>
                     </div>
                     <div class="fileName"></div>
-                    <div class="tags"></div>
+
+                    <div class="form-group">
+                        <?= Html::label('Tags', 'imageTags') ?>
+                        <div class="tags" data-id="select-tags"></div>
+                    </div>
+                    <?= Html::button('Update tags', ['class' => 'btn btn-primary btn-block', 'id' => 'update-tags']) ?>
+
                     <div class="created"></div>
                     <div class="fileSize"></div>
                     <div class="dimensions"><span class="dimension-width"></span> &times; <span class="dimension-height"></span></div>
