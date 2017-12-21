@@ -107,7 +107,7 @@ class ManagerController extends Controller
 
         Yii::$app->imagemanager->uploadImage();
 
-        return $this->redirect(['/imagemanager']);
+        return $this->redirect(\Yii::$app->request->referrer);
     }
 
     /**

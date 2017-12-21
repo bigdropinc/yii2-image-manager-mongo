@@ -105,10 +105,7 @@ $this->title = Yii::t('imagemanager','Image manager');
                     'accept' => 'image/*'
                 ],
                 'pluginOptions' => [
-//                        'uploadUrl' => Url::to(['manager/upload']),
                     'allowedFileExtensions' => $allowedFileExtensions,
-//                        'uploadAsync' => false,
-//                        'showPreview' => false,
                     'showRemove' => false,
                     'showUpload' => false,
                     'showCaption' => false,
@@ -117,13 +114,6 @@ $this->title = Yii::t('imagemanager','Image manager');
                     'browseIcon' => '<i class="fa fa-upload"></i> ',
                     'browseLabel' => 'Select photos',
                 ],
-//                    'pluginEvents' => [
-//                        "filebatchselected" => "function(event, files){  $('.msg-invalid-file-extension').addClass('hide'); $(this).fileinput('upload'); }",
-//                        "filebatchuploadsuccess" => "function(event, data, previewId, index) {
-//						imageManagerModule.uploadSuccess(data.jqXHR.responseJSON.imagemanagerFiles);
-//					}",
-//                        "fileuploaderror" => "function(event, data) { $('.msg-invalid-file-extension').removeClass('hide'); }",
-//                    ],
             ]) ?>
                 <br>
                 <?= Html::submitButton('Upload', ['class' => 'btn btn-primary btn-block']) ?>

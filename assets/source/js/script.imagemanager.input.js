@@ -1,3 +1,4 @@
+var modalManagerId = '#modal-imagemanager ';
 var imageManagerInput = {
 	baseUrl: null,
 	//language
@@ -9,9 +10,7 @@ var imageManagerInput = {
 	},
 	//creat image Manager modal
 	initModal: function(){
-		//check if modal not jet exists
-		if($("#modal-imagemanager").length === 0){
-			//set html modal in var
+		if (!$("#modal-imagemanager").length) {
 			var sModalHtml = '<div tabindex="-1" role="dialog" class="fade modal" id="modal-imagemanager">';
 				sModalHtml += '<div class="modal-dialog modal-lg">';
 					sModalHtml += '<div class="modal-content">';
@@ -25,14 +24,14 @@ var imageManagerInput = {
 					sModalHtml += '</div>';
 				sModalHtml += '</div>';
 			sModalHtml += '</div>';
-			//prepend data to body
+
 			$('body').prepend(sModalHtml);
 		}
 	},
 	//open media manager modal
 	openModal: function(inputId, aspectRatio, cropViewMode, multiple){
 		//get selected item
-		var iImageId = $("#"+inputId).val();
+		var iImageId = $("#" + inputId).val();
 		if (multiple) {
 			var ids = [];
             $('.multiple-input-list__item').each(function () {
@@ -48,38 +47,39 @@ var imageManagerInput = {
 		var queryStringStartCharacter = ((imageManagerInput.baseUrl).indexOf('?') == -1) ? '?' : '&';
 		var imageManagerUrl = imageManagerInput.baseUrl+queryStringStartCharacter+"view-mode=iframe&input-id="+inputId+"&aspect-ratio="+aspectRatio+"&multiple="+multiple+"&crop-view-mode="+cropViewMode+srcImageIdQueryString;
 		//set iframe path
-		$("#modal-imagemanager iframe").attr("src",imageManagerUrl);
+		$(modalManagerId + "iframe").attr("src",imageManagerUrl);
                 //set translation title for modal header
-                $("#modal-imagemanager .modal-dialog .modal-header h4").text(imageManagerInput.message.imageManager); 
+                $(modalManagerId + ".modal-dialog .modal-header h4").text(imageManagerInput.message.imageManager);
 		//open modal
-		$("#modal-imagemanager").modal("show");
+		$(modalManagerId).modal("show");
 	},
 	//close media manager modal
 	closeModal: function(){
-		$("#modal-imagemanager").modal("hide");
+		$(modalManagerId).modal("hide");
 	},
 	//delete picked image
 	deletePickedImage: function(inputId){
-		//remove value of the input field
 		var sFieldId = inputId;
-		var sFieldNameId = sFieldId+"_name";
-		var sImagePreviewId = sFieldId+"_image";
-		var bShowConfirm = JSON.parse($(".delete-selected-image[data-input-id='"+inputId+"']").data("show-delete-confirm"));
-		//show warning if bShowConfirm == true
-		if(bShowConfirm){
-			if(confirm(imageManagerInput.message.detachWarningMessage) == false){
+		var sFieldNameId = sFieldId + "_name";
+		var sImagePreviewId = sFieldId + "_image";
+		var $fieldId = $('#' + sFieldId);
+		var $deleteSelectedImage = $(".delete-selected-image[data-input-id='" + inputId + "']");
+		var bShowConfirm = JSON.parse($deleteSelectedImage.data("show-delete-confirm"));
+
+		if (bShowConfirm) {
+			if (confirm(imageManagerInput.message.detachWarningMessage) === false) {
 				return false;
 			}
-		}		
-		//set input data		
-		$('#'+sFieldId).val("");
-		$('#'+sFieldNameId).val("");
-		//trigger change
-		$('#'+sFieldId).trigger("change");
-		//hide image
-		$('#'+sImagePreviewId).attr("src","").parent().addClass("hide");	
-		//delete hide class
-		$(".delete-selected-image[data-input-id='"+inputId+"']").addClass("hide");
+		}
+
+		$fieldId.val("");
+		$('#' + sFieldNameId).val("");
+
+		$fieldId.trigger("change");
+
+		$('#' + sImagePreviewId).attr("src","").parent().addClass("hide");
+
+		$deleteSelectedImage.addClass("hide");
 	}
 };
 
