@@ -140,14 +140,13 @@ class ImageManager extends ActiveRecord
     }
 
     /**
-     * @param bool $insert
      * @return bool
      * @throws \yii\base\Exception
      */
-    public function beforeSave($insert)
+    public function beforeValidate()
     {
         $this->fileHash = $this->fileHash ?? \Yii::$app->getSecurity()->generateRandomString(32);
 
-        return parent::beforeSave($insert);
+        return parent::beforeValidate();
     }
 }

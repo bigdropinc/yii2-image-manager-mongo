@@ -157,6 +157,7 @@ class ImageManagerGetPath extends Component
 
                     Image::getImagine()->create(new Box($imageCanvasWidth, $imageCanvasHeight), (new RGB())->color('#FFF', 0))
                         ->paste($imageOriginal, new Point($imageOriginalPositionX, $imageOriginalPositionY))
+                        ->rotate(round($cropData['rotate']))
                         ->crop(new Point($imageCropPositionXRounded, $imageCropPositionYRounded), new Box($width, $height))
                         ->save(ImageHelper::getFilePath($model));
 

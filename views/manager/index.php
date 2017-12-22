@@ -8,6 +8,7 @@ use yii\data\ActiveDataProvider;
 use yii\bootstrap\Modal;
 use yii\bootstrap\ActiveForm;
 use kartik\select2\Select2;
+use rmrevin\yii\fontawesome\FA;
 
 /**
  * @var string $selectType
@@ -29,17 +30,29 @@ $this->title = Yii::t('imagemanager','Image manager');
                     <img src="" id="image-cropper">
                 </div>
                 <div class="action-buttons">
-                    <a href="#" class="btn btn-primary apply-crop">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary" data-method="rotate" data-option="-45" title="Rotate Left">
+                            <span class="docs-tooltip" data-toggle="tooltip" data-animation="false" title="" data-original-title="$().cropper(&quot;rotate&quot;, -45)">
+                                <?= FA::i('rotate-left') ?>
+                            </span>
+                        </button>
+                        <button type="button" class="btn btn-primary" data-method="rotate" data-option="45" title="Rotate Right">
+                            <span class="docs-tooltip" data-toggle="tooltip" data-animation="false" title="" data-original-title="$().cropper(&quot;rotate&quot;, 45)">
+                                <?= FA::i('rotate-right') ?>
+                            </span>
+                        </button>
+                    </div>
+                    <a href="#" class="btn btn-primary apply-crop pull-right">
                         <i class="fa fa-crop"></i>
                         <span class="hidden-xs"><?=Yii::t('imagemanager','Crop')?></span>
                     </a>
                     <?php if ($viewMode === "iframe"): ?>
-                        <a href="#" class="btn btn-primary apply-crop-select">
+                        <a href="#" class="btn btn-primary apply-crop-select pull-right">
                             <i class="fa fa-crop"></i>
                             <span class="hidden-xs"><?=Yii::t('imagemanager','Crop and select')?></span>
                         </a>
                     <?php endif; ?>
-                    <a href="#" class="btn btn-default cancel-crop">
+                    <a href="#" class="btn btn-default cancel-crop pull-right">
                         <i class="fa fa-undo"></i>
                         <span class="hidden-xs"><?=Yii::t('imagemanager','Cancel')?></span>
                     </a>
