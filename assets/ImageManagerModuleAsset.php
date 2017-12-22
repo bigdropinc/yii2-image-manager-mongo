@@ -19,5 +19,6 @@ class ImageManagerModuleAsset extends AssetBundle
     public $depends = [
 		'yii\web\JqueryAsset',
         'yii\bootstrap\BootstrapPluginAsset',
+        'rmrevin\yii\fontawesome\AssetBundle',
     ];
 }
