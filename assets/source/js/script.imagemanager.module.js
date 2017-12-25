@@ -328,6 +328,21 @@ var imageManagerModule = {
         },
         rotateRight: function () {
             imageManagerModule.editor.cropObject.cropper('rotate', 90);
+        },
+        moveMode: function () {
+            imageManagerModule.editor.cropObject.cropper('setDragMode', 'move');
+        },
+        cropMode: function () {
+            imageManagerModule.editor.cropObject.cropper('setDragMode', 'crop');
+        },
+        zoomIn: function () {
+            imageManagerModule.editor.cropObject.cropper('zoom', 0.1);
+        },
+        zoomOut: function () {
+            imageManagerModule.editor.cropObject.cropper('zoom', -0.1);
+        },
+        reset: function () {
+            imageManagerModule.editor.cropObject.cropper('reset');
         }
     }
 };
@@ -380,6 +395,26 @@ $(document).ready(function () {
 
     $(document).on("click", "#rotate-right", function() {
         imageManagerModule.editor.rotateRight();
+    });
+
+    $(document).on("click", "#mode-move", function() {
+        imageManagerModule.editor.moveMode();
+    });
+
+    $(document).on("click", "#mode-crop", function() {
+        imageManagerModule.editor.cropMode();
+    });
+
+    $(document).on("click", "#zoom-in", function() {
+        imageManagerModule.editor.zoomIn();
+    });
+
+    $(document).on("click", "#zoom-out", function() {
+        imageManagerModule.editor.zoomOut();
+    });
+
+    $(document).on("click", "#reset-crop", function() {
+        imageManagerModule.editor.reset();
     });
 
     $('.image-info .copy-link').click(function () {

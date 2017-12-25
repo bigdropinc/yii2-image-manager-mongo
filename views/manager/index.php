@@ -8,7 +8,6 @@ use yii\data\ActiveDataProvider;
 use yii\bootstrap\Modal;
 use yii\bootstrap\ActiveForm;
 use kartik\select2\Select2;
-use rmrevin\yii\fontawesome\FA;
 
 /**
  * @var string $selectType
@@ -31,15 +30,39 @@ $this->title = Yii::t('imagemanager','Image manager');
                 </div>
                 <div class="action-buttons">
                     <div class="btn-group">
-                        <button type="button" class="btn btn-primary" data-method="rotate" data-option="-45" title="Rotate Left">
-                            <span class="docs-tooltip" data-toggle="tooltip" data-animation="false" title="" data-original-title="$().cropper(&quot;rotate&quot;, -45)">
-                                <?= FA::i('rotate-left') ?>
-                            </span>
+                        <button type="button" class="btn btn-primary" id="mode-move"
+                                data-toggle="tooltip" data-placement="bottom" title="Move mode">
+                            <span class="fa fa-arrows"></span>
                         </button>
-                        <button type="button" class="btn btn-primary" data-method="rotate" data-option="45" title="Rotate Right">
-                            <span class="docs-tooltip" data-toggle="tooltip" data-animation="false" title="" data-original-title="$().cropper(&quot;rotate&quot;, 45)">
-                                <?= FA::i('rotate-right') ?>
-                            </span>
+                        <button type="button" class="btn btn-primary" id="mode-crop"
+                                data-toggle="tooltip" data-placement="bottom" title="Crop mode">
+                            <span class="fa fa-crop"></span>
+                        </button>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary" id="zoom-in"
+                                data-toggle="tooltip" data-placement="bottom" title="Zoom in">
+                            <span class="fa fa-search-plus"></span>
+                        </button>
+                        <button type="button" class="btn btn-primary" id="zoom-out"
+                                data-toggle="tooltip" data-placement="bottom" title="Zoom out">
+                            <span class="fa fa-search-minus"></span>
+                        </button>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary" id="rotate-left"
+                                data-toggle="tooltip" data-placement="bottom" title="Rotate left">
+                            <span class="fa fa-rotate-left"></span>
+                        </button>
+                        <button type="button" class="btn btn-primary" id="rotate-right"
+                                data-toggle="tooltip" data-placement="bottom" title="Rotate right">
+                            <span class="fa fa-rotate-right"></span>
+                        </button>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary" id="reset-crop"
+                                data-toggle="tooltip" data-placement="bottom" title="Reset">
+                            <span class="fa fa-refresh"></span>
                         </button>
                     </div>
                     <a href="#" class="btn btn-primary apply-crop pull-right">
