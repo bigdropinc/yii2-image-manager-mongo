@@ -117,7 +117,10 @@ class ManagerController extends Controller
 
         $extension = Yii::$app->imagemanager->uploadImage();
 
-        return $this->redirect(Yii::$app->request->referrer . '&tab=' . (in_array($extension, Module::IMAGE_EXTENSIONS) ? 'images' : 'files'));
+        $url = Yii::$app->request->referrer;
+        parse_str(parse_url($url, PHP_URL_QUERY), $query);
+        $query['tab'] = in_array($extension, Module::IMAGE_EXTENSIONS) ? 'images' : 'files';
+        return $this->redirect(parse_url($url, PHP_URL_PATH) . '?' . http_build_query($query));
     }
 
     /**
