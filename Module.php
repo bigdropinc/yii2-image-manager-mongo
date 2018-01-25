@@ -10,13 +10,13 @@ use yii\web\AssetManager;
 /**
  * imagemanager module definition class
  */
-class Module extends \yii\base\Module {
+class Module extends \yii\base\Module
+{
+    const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'gif', 'png'];
 
 	public $defaultRoute = 'manager';
 	//stylesheet for modal iframe
 	public $cssFiles = [];
-	//allowed Extensions for upload
-	public $allowedFileExtensions = ['jpg', 'jpeg', 'gif', 'png'];
 	//set assetPublishedUrl
 	public $assetPublishedUrl;
 

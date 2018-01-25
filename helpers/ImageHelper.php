@@ -60,11 +60,18 @@ class ImageHelper
      * @param ImageManager $model
      * @return string
      */
+    public static function getFileExtension($model)
+    {
+        return pathinfo($model->fileName, PATHINFO_EXTENSION);
+    }
+
+    /**
+     * @param ImageManager $model
+     * @return string
+     */
     public static function getFileName($model)
     {
-        $fileExtension = pathinfo($model->fileName, PATHINFO_EXTENSION);
-
-        return sprintf('%s_%s.%s', $model->id, $model->fileHash, $fileExtension);
+        return sprintf('%s_%s.%s', $model->id, $model->fileHash, self::getFileExtension($model));
     }
 
     /**

@@ -198,10 +198,27 @@ var imageManagerModule = {
                     $(selectedBlockId + ".tags").html(responseData.tags);
                     $(selectedBlockId + ".created").text(responseData.created);
                     $(selectedBlockId + ".fileSize").text(responseData.fileSize);
-                    $(selectedBlockId + ".dimensions .dimension-width").text(responseData.dimensionWidth);
-                    $(selectedBlockId + ".dimensions .dimension-height").text(responseData.dimensionHeight);
-                    $(selectedBlockId + ".thumbnail").html("<img src='"+responseData.image+"' alt='"+responseData.fileName+"'/>");
                     $(selectedBlockId + ".image-link").val(responseData.originalLink);
+
+                    var html;
+                    if (responseData.image) {
+                        $(selectedBlockId + ".dimensions .dimension-width").text(responseData.dimensionWidth);
+                        $(selectedBlockId + ".dimensions .dimension-height").text(responseData.dimensionHeight);
+
+                        $(selectedBlockId + ".dimensions").removeClass('hide');
+                        $(selectedBlockId + ".crop-image-item").removeClass('hide');
+
+                        html = "<img src='" + responseData.image + "' alt='" + responseData.fileName + "'/>";
+                    } else {
+                        $(selectedBlockId + ".dimensions").addClass('hide');
+                        $(selectedBlockId + ".crop-image-item").addClass('hide');
+
+                        var split = responseData.fileName.split("."),
+                            extension = split[split.length - 1];
+                        html = '<div class="file-extension">' + extension + '</div>';
+                    }
+
+                    $(selectedBlockId + ".thumbnail").html(html);
 
                     $(selectedBlockId).removeClass("hide");
                 }

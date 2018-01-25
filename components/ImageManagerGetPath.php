@@ -88,9 +88,10 @@ class ImageManagerGetPath extends Component
             $mode = $thumbnailMode == "outbound" ? "outbound" : "inset";
 
             $filePath = ImageHelper::getFilePath($model);
+            $fileExtension = ImageHelper::getFileExtension($model);
 
-            if (file_exists($filePath)) {
-                if (pathinfo($model->fileName, PATHINFO_EXTENSION) === 'gif') {
+            if (file_exists($filePath) && in_array($fileExtension, Module::IMAGE_EXTENSIONS)) {
+                if ($fileExtension === 'gif') {
                     $dir = \Yii::getAlias(sprintf('@webroot/%s/%s', $this->cachePath, ImageHelper::getDir($model)));
                     BaseFileHelper::createDirectory($dir);
 
@@ -210,8 +211,7 @@ class ImageManagerGetPath extends Component
     }
 
     /**
-     * @return void
-     * @throws Exception
+     * @return string
      */
     public function uploadImage()
     {
@@ -221,17 +221,14 @@ class ImageManagerGetPath extends Component
             if (!$file->error) {
                 $model = new Model();
                 $model->fileName = str_replace("_", "-", $file->name);
-                $model->fileHash = Yii::$app->getSecurity()->generateRandomString(32);
                 $model->tags = $tags;
 
                 if ($model->save()) {
-                    if ($file->type === 'image/gif') {
-                        file_put_contents(ImageHelper::getFilePath($model), file_get_contents($file->tempName));
-                    } else {
-                        Image::getImagine()->open($file->tempName)->save(ImageHelper::getFilePath($model));
-                    }
+                    $file->saveAs(ImageHelper::getFilePath($model));
                 }
             }
         }
+
+        return isset($model) ? ImageHelper::getFileExtension($model) : 'jpg';
     }
 }

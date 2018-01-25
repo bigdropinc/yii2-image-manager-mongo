@@ -10,6 +10,7 @@ use noam148\imagemanager\models\ImageManagerSearch;
 use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\web\Response;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -75,8 +76,16 @@ class ManagerController extends Controller
 
         $searchModel = new ImageManagerSearch();
 
-        $dataProvider = new ActiveDataProvider([
-            'query' => $searchModel->search(Yii::$app->request->queryParams),
+        $imageDataProvider = new ActiveDataProvider([
+            'query' => $searchModel->search($request->queryParams, false, true),
+            'pagination' => [
+                'pageSize' => 100,
+            ],
+            'sort'=> ['defaultOrder' => ['created'=>SORT_DESC]]
+        ]);
+
+        $fileDataProvider = new ActiveDataProvider([
+            'query' => $searchModel->search($request->queryParams, false, false),
             'pagination' => [
                 'pageSize' => 100,
             ],
@@ -85,12 +94,13 @@ class ManagerController extends Controller
 
         return $this->render('@vendor/kolyasiryk/yii2-image-manager-mongo/views/manager/index', [
             'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
+            'imageDataProvider' => $imageDataProvider,
+            'fileDataProvider' => $fileDataProvider,
             'viewMode' => $viewMode,
             'selectType' => $selectType,
-            'allowedFileExtensions' => $this->module->allowedFileExtensions,
             'canUploadImage' => $this->module->canUploadImage,
             'canRemoveImage' => $this->module->canRemoveImage,
+            'imageTabActive' => $request->get('tab', 'images') === 'images',
         ]);
     }
 
@@ -105,9 +115,9 @@ class ManagerController extends Controller
             return [];
         }
 
-        Yii::$app->imagemanager->uploadImage();
+        $extension = Yii::$app->imagemanager->uploadImage();
 
-        return $this->redirect(\Yii::$app->request->referrer);
+        return $this->redirect(Yii::$app->request->referrer . '&tab=' . (in_array($extension, Module::IMAGE_EXTENSIONS) ? 'images' : 'files'));
     }
 
     /**

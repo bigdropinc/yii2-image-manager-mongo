@@ -16,6 +16,7 @@ use kartik\select2\Select2;
  * @var bool $canUploadImage
  * @var bool $allowedFileExtensions
  * @var bool $canRemoveImage
+ * @var bool $imageTabActive
  */
 
 $this->title = Yii::t('imagemanager','Image manager');
@@ -83,19 +84,43 @@ $this->title = Yii::t('imagemanager','Image manager');
             </div>
         </div>
         <div class="col-xs-6 col-sm-10 col-overview">
-            <?php Pjax::begin([
-                'id'=>'pjax-mediamanager',
-                'timeout'=>'5000'
-            ]); ?>
-            <?= ListView::widget([
-                'dataProvider' => $dataProvider,
-                'itemOptions' => ['class' => 'item img-thumbnail'],
-                'layout' => "<div class='item-overview'>{items}</div> {pager}",
-                'itemView' => function ($model) {
-                    return $this->render("@noam148/imagemanager/views/manager/_item", ['model' => $model]);
-                },
-            ]) ?>
-            <?php Pjax::end(); ?>
+            <div class="bs-example bs-example-tabs" data-example-id="togglable-tabs">
+                <ul class="nav nav-tabs" id="myTabs" role="tablist">
+                    <li role="presentation" class="<?= $imageTabActive ? 'active' : '' ?>"><a href="#home" id="home-tab" role="tab" data-toggle="tab" aria-controls="home" aria-expanded="true">Images</a></li>
+                    <li role="presentation" class="<?= $imageTabActive ? '' : 'active' ?>"><a href="#profile" role="tab" id="profile-tab" data-toggle="tab" aria-controls="profile" aria-expanded="false">Files</a></li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade <?= $imageTabActive ? 'active in' : '' ?>" role="tabpanel" id="home" aria-labelledby="home-tab">
+                        <?php Pjax::begin([
+                            'id'=>'pjax-mediamanager',
+                            'timeout'=>'5000'
+                        ]); ?>
+                        <?= ListView::widget([
+                            'dataProvider' => $imageDataProvider,
+                            'itemOptions' => ['class' => 'item img-thumbnail'],
+                            'layout' => "<div class='item-overview'>{items}</div> {pager}",
+                            'itemView' => function ($model) {
+                                return $this->render("@noam148/imagemanager/views/manager/_item", ['model' => $model]);
+                            },
+                        ]) ?>
+                        <?php Pjax::end(); ?>
+                    </div>
+                    <div class="tab-pane fade <?= $imageTabActive ? '' : 'active in' ?>" role="tabpanel" id="profile" aria-labelledby="profile-tab">
+                        <?php Pjax::begin([
+                            'id'=>'pjax-mediamanager',
+                            'timeout'=>'5000'
+                        ]); ?>
+                        <?= ListView::widget([
+                            'dataProvider' => $fileDataProvider,
+                            'itemOptions' => ['class' => 'item img-thumbnail'],
+                            'layout' => "<div class='item-overview'>{items}</div> {pager}",
+                            'itemView' => function ($model) {
+                                return $this->render("@noam148/imagemanager/views/manager/_item", ['model' => $model]);
+                            },
+                        ]) ?>
+                        <?php Pjax::end(); ?>                    </div>
+                </div>
+            </div>
         </div>
         <div class="col-xs-6 col-sm-2 col-options">
             <div class="form-group">
@@ -138,10 +163,10 @@ $this->title = Yii::t('imagemanager','Image manager');
                 'id' => 'imagemanager-files',
                 'options' => [
                     'multiple' => true,
-                    'accept' => 'image/*'
+//                    'accept' => 'image/*'
                 ],
                 'pluginOptions' => [
-                    'allowedFileExtensions' => $allowedFileExtensions,
+//                    'allowedFileExtensions' => $allowedFileExtensions,
                     'showRemove' => false,
                     'showUpload' => false,
                     'showCaption' => false,

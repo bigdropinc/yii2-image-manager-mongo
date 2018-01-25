@@ -28,10 +28,11 @@ class ImageManagerSearch extends ImageManager
      *
      * @param array $params
      * @param bool $viewAll
+     * @param bool $showImages
      *
      * @return ActiveQuery
      */
-    public function search($params, $viewAll = false)
+    public function search($params, $viewAll = false, $showImages = true)
     {
         $this->load($params);
 
@@ -49,6 +50,13 @@ class ImageManagerSearch extends ImageManager
                 ->orWhere(['modified' => ['$regex' => $this->globalSearch, '$options' => 'i']])
                 ->orWhere(['tags' => $this->globalSearch]);
         }
+
+        $or = [];
+        foreach (Module::IMAGE_EXTENSIONS as $IMAGE_EXTENSION) {
+            $or[] = ['fileName' => ['$regex' => '.' . $IMAGE_EXTENSION, '$options' => 'i']];
+        }
+
+        $query->andWhere([$showImages ? '$or' : '$nor' => $or]);
 
         return $query;
     }
