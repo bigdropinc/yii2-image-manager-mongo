@@ -2,6 +2,7 @@
 
 namespace noam148\imagemanager\widgets;
 
+use noam148\imagemanager\helpers\ImageHelper;
 use unclead\multipleinput\MultipleInput;
 use Yii;
 use yii\widgets\InputWidget;
@@ -159,20 +160,7 @@ class ImageManagerInput extends InputWidget
     protected function renderMultiplyInput()
     {
         if (!$this->models) {
-            $ids = $this->model->{$this->attribute};
-
-            $images = $ids ? ImageManager::find()
-                ->where(['_id' => ['$in' => $ids]])
-                ->all() : [];
-
-            $models = [];
-            foreach ($images as $image) {
-                $models[array_search($image->id, $ids)] = $image;
-            }
-
-            ksort($models);
-
-            $this->models = $models;
+            $this->models = ImageHelper::getModels($this->model->{$this->attribute});
         }
 
         $i = 1;

@@ -2,7 +2,9 @@
 
 namespace noam148\imagemanager\helpers;
 
+use MongoDB\BSON\ObjectId;
 use noam148\imagemanager\models\ImageManager;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 
 /**
@@ -142,5 +144,40 @@ class ImageHelper
         $path = self::getPathByUrl($url, $alias);
 
         return file_exists(\Yii::getAlias($path)) ? \Yii::$app->imageresize->getUrl($path, $width, $height, $mode) : null;
+    }
+
+    /**
+     * @param string[] $ids
+     * @return ImageManager[]
+     */
+    public static function getModels($ids)
+    {
+        $images = $ids ? ImageManager::find()
+            ->where(['_id' => ['$in' => $ids]])
+            ->all() : [];
+
+        $models = [];
+        foreach ($images as $image) {
+            $models[array_search($image->id, $ids)] = $image;
+        }
+
+        ksort($models);
+
+        return $models;
+    }
+
+    /**
+     * @param array $value
+     * @return array
+     */
+    public static function filterFormResults($value)
+    {
+        if (!$value) return [];
+        $value = ArrayHelper::map($value, 'id', 'order');
+        asort($value);
+
+        return array_map(function($value) {
+            return new ObjectId($value);
+        }, array_keys($value));
     }
 }
