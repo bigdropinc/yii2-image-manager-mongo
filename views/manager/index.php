@@ -19,7 +19,7 @@ use kartik\select2\Select2;
  * @var bool $imageTabActive
  */
 
-$this->title = Yii::t('imagemanager','Image manager');
+$this->title = Yii::t('imagemanager','File manager');
 ?>
 
 <div id="module-imagemanager" class="container-fluid <?= $selectType ?>">
@@ -118,7 +118,8 @@ $this->title = Yii::t('imagemanager','Image manager');
                                 return $this->render("@noam148/imagemanager/views/manager/_item", ['model' => $model]);
                             },
                         ]) ?>
-                        <?php Pjax::end(); ?>                    </div>
+                        <?php Pjax::end(); ?>
+                    </div>
                 </div>
             </div>
         </div>
@@ -130,7 +131,7 @@ $this->title = Yii::t('imagemanager','Image manager');
             <?php if ($canUploadImage):?>
 
                 <?php Modal::begin([
-                    'header'=>'File Input inside Modal',
+                    'header'=>'Uploading files',
                     'toggleButton' => [
                         'label'=>'Upload', 'class'=>'btn btn-primary btn-block'
                     ],
@@ -173,7 +174,7 @@ $this->title = Yii::t('imagemanager','Image manager');
                     'showCancel' => false,
                     'browseClass' => 'btn btn-primary btn-block',
                     'browseIcon' => '<i class="fa fa-upload"></i> ',
-                    'browseLabel' => 'Select photos',
+                    'browseLabel' => 'Select files',
                 ],
             ]) ?>
                 <br>
@@ -197,7 +198,7 @@ $this->title = Yii::t('imagemanager','Image manager');
                 </div>
                 <div class="details">
                     <div class="form-group">
-                        <label>Link for image</label> <button class="btn copy-link">Copy</button>
+                        <label>Link for file</label> <button class="btn copy-link">Copy</button>
                         <input title="" type="text" class="form-control image-link" readonly>
                     </div>
                     <div class="fileName"></div>

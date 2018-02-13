@@ -12,6 +12,6 @@ return [
     'Modified' => 'Modified',
     'Search' => 'Search',
     'Select' => 'Select',
-    'Image manager' => 'Image manager',
+    'File manager' => 'File manager',
     'Upload' => 'Upload'
 ];
