@@ -175,6 +175,7 @@ $this->title = Yii::t('imagemanager','File manager');
                     'browseClass' => 'btn btn-primary btn-block',
                     'browseIcon' => '<i class="fa fa-upload"></i> ',
                     'browseLabel' => 'Select files',
+                    'maxFileSize' => \Yii::$app->imagemanager->maxFileSize,
                 ],
             ]) ?>
                 <br>

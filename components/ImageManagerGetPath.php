@@ -48,6 +48,11 @@ class ImageManagerGetPath extends Component
 	public $databaseComponent = 'mongodb';
 
     /**
+     * @var int The maximum file size for upload in KB
+     */
+	public $maxFileSize = 10000;
+
+    /**
      * Init set config
      *
      * @return void
