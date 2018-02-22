@@ -29,7 +29,7 @@ to the require section of your application's `composer.json` file.
 		//set media path (outside the web folder is possible)
 		'mediaPath' => '/path/where/to/store/images/media/imagemanager',
 		//path relative web folder to store the cache images
-		'cachePath' => 'assets/images',
+		'cachePath' => ['assets/images'],
 		//use filename (seo friendly) for resized images else use a hash
 		'useFilename' => true,
 		//show full url (for example in case of a API)

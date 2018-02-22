@@ -107,7 +107,7 @@ $this->title = Yii::t('imagemanager','File manager');
                     </div>
                     <div class="tab-pane fade <?= $imageTabActive ? '' : 'active in' ?>" role="tabpanel" id="profile" aria-labelledby="profile-tab">
                         <?php Pjax::begin([
-                            'id'=>'pjax-mediamanager',
+                            'id'=>'pjax-mediamanager-files',
                             'timeout'=>'5000'
                         ]); ?>
                         <?= ListView::widget([
