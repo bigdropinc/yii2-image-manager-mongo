@@ -44,7 +44,10 @@ var imageManagerModule = {
         var newUrl = window.queryStringParameter.set(window.location.href, "ImageManagerSearch[globalSearch]", searchTerm);
         //set pjax
         $.pjax({url: newUrl, container: "#pjax-mediamanager", push: false, replace: false, timeout: 5000, scrollTo:false});
-        $.pjax({url: newUrl, container: "#pjax-mediamanager-files", push: false, replace: false, timeout: 5000, scrollTo:false});
+
+        $('#pjax-mediamanager').on('pjax:end', function () {
+            $.pjax({url: newUrl, container: "#pjax-mediamanager-files", push: false, replace: false, timeout: 5000, scrollTo:false});
+        });
     },
     //select an image
     selectImage: function(id){
