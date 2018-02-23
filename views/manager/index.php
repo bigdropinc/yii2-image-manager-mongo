@@ -197,6 +197,7 @@ $this->title = Yii::t('imagemanager','File manager');
                         <span class="hidden-xs"><?=Yii::t('imagemanager','Crop')?></span>
                     </a>
                 </div>
+                <hr>
                 <div class="details">
                     <div class="form-group">
                         <label>Link for file</label> <button class="btn copy-link">Copy</button>
