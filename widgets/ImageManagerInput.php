@@ -43,6 +43,9 @@ class ImageManagerInput extends InputWidget
     /** @var array */
     public $models;
 
+    /** @var array */
+    public $additionalFields = [];
+
     /**
      * @inheritdoc
      */
@@ -165,61 +168,61 @@ class ImageManagerInput extends InputWidget
 
         $i = 1;
         return $this->getModalOpenBtn() . MultipleInput::widget([
-            'data' => array_map(function ($model) use (&$i) {
-                /** @var ImageManager $model */
-                return [
-                    'id' => $model->id,
-                    'name' => $model->fileName,
-                    'image' => \Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
-                    'order' => $i++,
-                ];
-            }, $this->models),
-            'model' => $this->model,
-            'attribute' => $this->attribute,
-            'allowEmptyList'    => true,
-            'enableGuessTitle'  => true,
-            'addButtonPosition' => MultipleInput::POS_FOOTER,
-            'addButtonOptions' => [
-                'class' => 'hidden',
-            ],
-            'columns' => [
-                [
-                    'name' => 'id',
-                    'title' => 'Image',
-                    'type' => 'hiddenInput',
-                    'options' => [
-                        'class' => 'image-id',
+                'data' => array_map(function ($model) use (&$i) {
+                    /** @var ImageManager $model */
+                    return [
+                        'id' => $model->id,
+                        'name' => $model->fileName,
+                        'image' => \Yii::$app->imagemanager->getImagePath($model->id, 200, 200, "inset", true),
+                        'order' => $i++,
+                    ];
+                }, $this->models),
+                'model' => $this->model,
+                'attribute' => $this->attribute,
+                'allowEmptyList'    => true,
+                'enableGuessTitle'  => true,
+                'addButtonPosition' => MultipleInput::POS_FOOTER,
+                'addButtonOptions' => [
+                    'class' => 'hidden',
+                ],
+                'columns' => array_merge([
+                    [
+                        'name' => 'id',
+                        'title' => 'Image',
+                        'type' => 'hiddenInput',
+                        'options' => [
+                            'class' => 'image-id',
+                        ],
                     ],
-                ],
-                [
-                    'name' => 'name',
-                    'title' => 'Name',
-                    'type' => 'static',
-                    'value' => function ($data) {
-                        return Html::tag('p', $data['name'], [
-                            'class' => 'image-name',
-                        ]);
-                    },
-                ],
-                [
-                    'name' => 'image',
-                    'title' => 'Image',
-                    'type' => 'static',
-                    'value' => function ($data) {
-                        return Html::img($data['image']);
-                    },
-                ],
-                [
-                    'name' => 'order',
-                    'title' => 'Order',
-                    'options' => [
-                        'class' => 'image-order',
-                        'type' => 'number',
-                        'min' => 1,
+                    [
+                        'name' => 'name',
+                        'title' => 'Name',
+                        'type' => 'static',
+                        'value' => function ($data) {
+                            return Html::tag('p', $data['name'], [
+                                'class' => 'image-name',
+                            ]);
+                        },
                     ],
-                ],
-            ],
-        ]);
+                    [
+                        'name' => 'image',
+                        'title' => 'Image',
+                        'type' => 'static',
+                        'value' => function ($data) {
+                            return Html::img($data['image']);
+                        },
+                    ],
+                    [
+                        'name' => 'order',
+                        'title' => 'Order',
+                        'options' => [
+                            'class' => 'image-order',
+                            'type' => 'number',
+                            'min' => 1,
+                        ],
+                    ],
+                ], $this->additionalFields),
+            ]);
     }
 
     /**
