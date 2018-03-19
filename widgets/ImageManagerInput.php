@@ -46,6 +46,9 @@ class ImageManagerInput extends InputWidget
     /** @var array */
     public $additionalFields = [];
 
+    /** @var array */
+    public $data = [];
+
     /**
      * @inheritdoc
      */
@@ -168,7 +171,7 @@ class ImageManagerInput extends InputWidget
 
         $i = 1;
         return $this->getModalOpenBtn() . MultipleInput::widget([
-                'data' => array_map(function ($model) use (&$i) {
+                'data' => $this->data ?: array_map(function ($model) use (&$i) {
                     /** @var ImageManager $model */
                     return [
                         'id' => $model->id,
