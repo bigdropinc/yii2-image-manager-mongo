@@ -150,7 +150,7 @@ $this->title = Yii::t('imagemanager','File manager');
                         'theme' => Select2::THEME_BOOTSTRAP,
                         'options' => [
                             'placeholder' => 'Enter tags...',
-                            'id' => 'w' . $form->getId(),
+                            'id' => 'upload-tags',
                         ],
                         'pluginOptions' => [
                             'tags' => true,
@@ -168,18 +168,21 @@ $this->title = Yii::t('imagemanager','File manager');
                 ],
                 'pluginOptions' => [
 //                    'allowedFileExtensions' => $allowedFileExtensions,
-                    'showRemove' => false,
-                    'showUpload' => false,
                     'showCaption' => false,
                     'showCancel' => false,
-                    'browseClass' => 'btn btn-primary btn-block',
-                    'browseIcon' => '<i class="fa fa-upload"></i> ',
-                    'browseLabel' => 'Select files',
                     'maxFileSize' => \Yii::$app->imagemanager->maxFileSize,
+                    'uploadUrl' => Url::to(['manager/upload']),
+                    'uploadExtraData' => new \yii\web\JsExpression('function() {
+                            var result = {}; 
+                            $.each($("#upload-tags[name=\'tags[]\']").val(), function (index, val) {
+                                result["tags[" + index + "]"] = val
+                            });
+                            return result
+                        }')
                 ],
             ]) ?>
                 <br>
-                <?= Html::submitButton('Upload', ['class' => 'btn btn-primary btn-block']) ?>
+                <!--                --><?//= Html::submitButton('Upload', ['class' => 'btn btn-primary btn-block']) ?>
 
                 <?php ActiveForm::end() ?>
                 <?php Modal::end() ?>

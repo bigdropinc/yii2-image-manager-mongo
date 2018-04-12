@@ -10,6 +10,7 @@ use noam148\imagemanager\models\ImageManagerSearch;
 use yii\base\InvalidConfigException;
 use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
+use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\web\Response;
 use yii\web\Controller;
@@ -25,31 +26,31 @@ class ManagerController extends Controller
 {
     public $enableCsrfValidation = false;
 
-	/**
-	 * @inheritdoc
-	 */
-	public function behaviors() {
-		return [
-			'verbs' => [
-				'class' => VerbFilter::className(),
-				'actions' => [
-					'delete' => ['DELETE'],
-				],
-			],
-		];
-	}
+    /**
+     * @inheritdoc
+     */
+    public function behaviors() {
+        return [
+            'verbs' => [
+                'class' => VerbFilter::className(),
+                'actions' => [
+                    'delete' => ['DELETE'],
+                ],
+            ],
+        ];
+    }
 
-	/**
-	 * @inheritdoc
-	 */
-	public function beforeAction($action)
+    /**
+     * @inheritdoc
+     */
+    public function beforeAction($action)
     {
-		if ($this->action->id != 'index') {
+        if ($this->action->id != 'index') {
             Yii::$app->response->format = Response::FORMAT_JSON;
         }
 
-		return parent::beforeAction($action);
-	}
+        return parent::beforeAction($action);
+    }
 
     /**
      * Lists all ImageManager models.
@@ -104,23 +105,21 @@ class ManagerController extends Controller
         ]);
     }
 
-	/**
-	 * Creates a new ImageManager model.
-	 * If creation is successful, the browser will be redirected to the 'view' page.
-	 * @return mixed
-	 */
+    /**
+     * Creates a new ImageManager model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @return mixed
+     */
     public function actionUpload()
     {
         if ($this->module->canUploadImage == false) {
             return [];
         }
 
-        $extension = Yii::$app->imagemanager->uploadImage();
+        Yii::$app->imagemanager->uploadImage();
 
-        $url = Yii::$app->request->referrer;
-        parse_str(parse_url($url, PHP_URL_QUERY), $query);
-        $query['tab'] = in_array($extension, Module::IMAGE_EXTENSIONS) ? 'images' : 'files';
-        return $this->redirect(parse_url($url, PHP_URL_PATH) . '?' . http_build_query($query));
+        \Yii::$app->response->headers->set('Content-Type', 'application/json');
+        return Json::encode([]);
     }
 
     /**
@@ -136,12 +135,12 @@ class ManagerController extends Controller
         return Yii::$app->imagemanager->cropImage($model, Yii::$app->request->post("CropData"));
     }
 
-	/**
-	 * Get view details
+    /**
+     * Get view details
      *
-	 * @return mixed
+     * @return mixed
      * @throws NotFoundHttpException|InvalidConfigException|\Exception
-	 */
+     */
     public function actionView($id)
     {
         $model = $this->findModel(Yii::$app->request->get("ImageManager_id"));
@@ -186,12 +185,12 @@ class ManagerController extends Controller
         return ['result' => $model->save()];
     }
 
-	/**
-	 * Get full image
+    /**
+     * Get full image
      *
-	 * @return mixed
+     * @return mixed
      * @throws NotFoundHttpException
-	 */
+     */
     public function actionGetOriginalImage()
     {
         $model = $this->findModel(Yii::$app->request->get("ImageManager_id"));
@@ -206,29 +205,29 @@ class ManagerController extends Controller
      * @return array
      * @throws NotFoundHttpException|\Exception|\yii\db\StaleObjectException
      */
-	public function actionDelete()
+    public function actionDelete()
     {
-		$return = ['delete' => false];
+        $return = ['delete' => false];
 
-		if (Yii::$app->controller->module->canRemoveImage == false) {
-		    return $return;
-		}
+        if (Yii::$app->controller->module->canRemoveImage == false) {
+            return $return;
+        }
 
-		$model = $this->findModel(Yii::$app->request->post("ImageManager_id"));
+        $model = $this->findModel(Yii::$app->request->post("ImageManager_id"));
 
-		if ($model && $model->delete()) {
-			$return['delete'] = true;
-		}
-		return $return;
-	}
+        if ($model && $model->delete()) {
+            $return['delete'] = true;
+        }
+        return $return;
+    }
 
-	/**
-	 * Finds the ImageManager model based on its primary key value.
-	 * If the model is not found, a 404 HTTP exception will be thrown.
-	 * @param integer $id
-	 * @return ImageManager the loaded model
-	 * @throws NotFoundHttpException if the model cannot be found
-	 */
+    /**
+     * Finds the ImageManager model based on its primary key value.
+     * If the model is not found, a 404 HTTP exception will be thrown.
+     * @param integer $id
+     * @return ImageManager the loaded model
+     * @throws NotFoundHttpException if the model cannot be found
+     */
     protected function findModel($id)
     {
         if ($model = ImageManager::findOne($id)) {
