@@ -203,7 +203,8 @@ $this->title = Yii::t('imagemanager','File manager');
                 <hr>
                 <div class="details">
                     <div class="form-group">
-                        <label>Link for file</label> <button class="btn copy-link">Copy</button>
+                        <label>Link for file </label> <button class="btn copy-link">Copy</button>
+                        <hr>
                         <input title="" type="text" class="form-control image-link" readonly>
                     </div>
                     <div class="fileName"></div>
