@@ -182,7 +182,7 @@ $this->title = Yii::t('imagemanager','File manager');
                 ],
             ]) ?>
                 <br>
-                <!--                --><?//= Html::submitButton('Upload', ['class' => 'btn btn-primary btn-block']) ?>
+                <?= Html::a('Complete the download', \Yii::$app->request->url, ['class' => 'btn btn-primary btn-block']) ?>
 
                 <?php ActiveForm::end() ?>
                 <?php Modal::end() ?>
