@@ -2,6 +2,7 @@
 
 namespace noam148\imagemanager\components;
 
+use bigbrush\tinypng\TinyPng;
 use Imagine\Image\Box;
 use Imagine\Image\Palette\RGB;
 use Imagine\Image\Point;
@@ -12,45 +13,67 @@ use yii\base\Component;
 use noam148\imagemanager\models\ImageManager as Model;
 use yii\base\Exception;
 use yii\base\InvalidConfigException;
+use yii\helpers\ArrayHelper;
 use yii\helpers\BaseFileHelper;
 use yii\imagine\Image;
 use yii\web\UploadedFile;
 
+/**
+ * Class ImageManagerGetPath
+ * @package noam148\imagemanager\components
+ *
+ * @property S3Component $s3
+ */
 class ImageManagerGetPath extends Component
 {
     public $yiiMediaPath;
 
-	/**
-	 * @var null|string $mediaPath Folder path in which the images are stored
-	 */
-	public $mediaPath = null;
+    /**
+     * @var null|string $mediaPath Folder path in which the images are stored
+     */
+    public $mediaPath = null;
 
-	/**
-	 * @var string $cachePath cache path where store the resized images (relative from webroot (index.php))
-	 */
-	public $cachePath = "assets/imagemanager";
+    /**
+     * @var string $cachePath cache path where store the resized images (relative from webroot (index.php))
+     */
+    public $cachePath = "assets/imagemanager";
 
-	/**
-	 * @var boolean $useFilename use original filename in generated cache file
-	 */
-	public $useFilename = true;
+    /**
+     * @var boolean $useFilename use original filename in generated cache file
+     */
+    public $useFilename = true;
 
-	/**
-	 * @var boolean $useFilename use original filename in generated cache file
-	 */
-	public $absoluteUrl = false;
+    /**
+     * @var boolean $useFilename use original filename in generated cache file
+     */
+    public $absoluteUrl = false;
 
     /**
      * @var string The DB component name that the image model uses
      * This defaults to the default Yii DB component: Yii::$app->db
      * If this component is not set, the model will default to DB
      */
-	public $databaseComponent = 'mongodb';
+    public $databaseComponent = 'mongodb';
 
     /**
      * @var int The maximum file size for upload in KB
      */
-	public $maxFileSize = 10000;
+    public $maxFileSize = 10000;
+
+    /** @var bool */
+    public $useS3 = false;
+
+    public $s3Component = 's3';
+    
+    public $s3Url;
+
+    public $s3Configuration;
+
+    public $thumbSizes = [];
+    
+    public $useTinyPng = false;
+    
+    public $tinyPngComponent = 'tinyPng';
 
     /**
      * Init set config
@@ -58,23 +81,33 @@ class ImageManagerGetPath extends Component
      * @return void
      * @throws InvalidConfigException
      */
-	public function init()
+    public function init()
     {
-		parent::init();
+        parent::init();
 
-		\Yii::$app->set('imageresize', [
-			'class' => 'noam148\imageresize\ImageResize',
-			'cachePath' => $this->cachePath,
-			'useFilename' => $this->useFilename,
-			'absoluteUrl' => $this->absoluteUrl,
-		]);
+        \Yii::$app->set('imageresize', [
+            'class' => 'noam148\imageresize\ImageResize',
+            'cachePath' => $this->cachePath,
+            'useFilename' => $this->useFilename,
+            'absoluteUrl' => $this->absoluteUrl,
+        ]);
 
-		if (is_callable($this->databaseComponent)) {
-		    $this->databaseComponent = call_user_func($this->databaseComponent);
+        if ($this->useS3) {
+            if (!$this->s3Configuration) {
+                throw new InvalidConfigException('S3 configuration is required');
+            }
+
+            \Yii::$app->set($this->s3Component, ArrayHelper::merge([
+                'class' => 'noam148\imagemanager\components\S3Component',
+            ], $this->s3Configuration));
+        }
+
+        if (is_callable($this->databaseComponent)) {
+            $this->databaseComponent = call_user_func($this->databaseComponent);
         }
 
         $this->_checkVariables();
-	}
+    }
 
     /**
      * Get the path for the given ImageManager_id record
@@ -120,7 +153,7 @@ class ImageManagerGetPath extends Component
      * Check if the user configurable variables match the criteria
      * @throws InvalidConfigException
      */
-	private function _checkVariables()
+    private function _checkVariables()
     {
         if (!is_string($this->databaseComponent)) {
             throw new InvalidConfigException("Image Manager Component - Init: Database component '$this->databaseComponent' is not a string");
@@ -129,6 +162,21 @@ class ImageManagerGetPath extends Component
         if (Yii::$app->get($this->databaseComponent, false) === null) {
             throw new InvalidConfigException("Image Manager Component - Init: Database component '$this->databaseComponent' does not exists in application configuration");
         }
+
+        if ($this->useTinyPng) {
+            if (Yii::$app->get($this->tinyPngComponent, false) === null) {
+                throw new InvalidConfigException("Image Manager Component - Init: TinyPNG component '$this->tinyPngComponent' does not exists in application configuration");
+            }
+
+            if (Yii::$app->get($this->tinyPngComponent, false) instanceof TinyPng === false) {
+                throw new InvalidConfigException("Image Manager Component - Init: TinyPNG component '$this->tinyPngComponent' must be extends from " . TinyPng::class);
+            }
+        }
+    }
+
+    public function getS3()
+    {
+        return \Yii::$app->get($this->s3Component);
     }
 
     /**
@@ -225,11 +273,35 @@ class ImageManagerGetPath extends Component
         foreach (UploadedFile::getInstancesByName('imagemanagerFiles') as $file) {
             if (!$file->error) {
                 $model = new Model();
-                $model->fileName = str_replace("_", "-", $file->name);
+                $model->fileName = str_replace("_", "-", $file->getBaseName()) . '.' . mb_strtolower($file->getExtension());
                 $model->tags = $tags;
 
                 if ($model->save()) {
-                    $file->saveAs(ImageHelper::getFilePath($model));
+                    if ($this->useTinyPng && in_array($file->getExtension(), ['jpg', 'jpeg', 'png'])) {
+                        \Yii::$app->get($this->tinyPngComponent)->compress($file->tempName);
+                    }
+
+                    if ($this->useS3) {
+                        $fileName = ImageHelper::getFileName($model);
+
+                        $this->s3->put($fileName, $file->tempName);
+
+                        if (in_array(ImageHelper::getFileExtension($model), Module::IMAGE_EXTENSIONS)) {
+                            if ($fileExtension === 'gif') {
+                                Image::getImagine()->open($file->tempName)->save();
+                            }
+
+                            $sizeName = ImageHelper::getSizeName(300, 300);
+
+                            $path = ImageHelper::getPathByUrl(ImageHelper::getThumbByUrl($file->tempName, 300, 300, 'inset', '@frontend/web', $fileName));
+
+                            $this->s3->put(ImageHelper::getFileName($model), \Yii::getAlias($path), $sizeName);
+
+                            $model->updateAttributes(['sizes' => [$sizeName]]);
+                        }
+                    } else {
+                        $file->saveAs(ImageHelper::getFilePath($model));
+                    }
                 }
             }
         }
