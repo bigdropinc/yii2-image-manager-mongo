@@ -6,6 +6,7 @@ use MongoDB\BSON\ObjectId;
 use noam148\imagemanager\models\ImageManager;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
+use Yii;
 
 /**
  * Class Image
@@ -226,5 +227,31 @@ class ImageHelper
         $id = explode('_', $fileName)[0];
 
         return ImageManager::findOne($id);
+    }
+
+
+    /**
+     * @param ImageManager $model
+     * @return bool
+     */
+    public static function deleteFile(ImageManager $model)
+    {
+        try {
+            if($model->sizes){
+                foreach ($model->sizes as $key => $size){
+                    \Yii::$app->imagemanager->s3->delete(self::getFileName($model), $size);
+                    unset($model->sizes[$key]);
+                    $model->save();
+                }
+            }
+
+            \Yii::$app->imagemanager->s3->delete(self::getFileName($model));
+
+            $result = boolval($model->delete());
+        } catch (\Exception $e) {
+            $result = false;
+        }
+
+        return $result;
     }
 }

@@ -207,18 +207,13 @@ class ManagerController extends Controller
      */
     public function actionDelete()
     {
-        $return = ['delete' => false];
+        $result = false;
 
-        if (Yii::$app->controller->module->canRemoveImage == false) {
-            return $return;
+        if (Yii::$app->controller->module->canRemoveImage != false && $model = $this->findModel(Yii::$app->request->post("ImageManager_id"))) {
+            $result = ImageHelper::deleteFile($model);
         }
 
-        $model = $this->findModel(Yii::$app->request->post("ImageManager_id"));
-
-        if ($model && $model->delete()) {
-            $return['delete'] = true;
-        }
-        return $return;
+        return ['delete' => $result];
     }
 
     /**

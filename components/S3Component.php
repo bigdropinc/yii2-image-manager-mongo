@@ -66,4 +66,19 @@ class S3Component extends Component
             'ACL'    => 'public-read',
         ]);
     }
+
+
+    public function delete($fileName, $bucket = null)
+    {
+        $bucket = $bucket ?? $this->defaultBucket;
+        if ($this->client->doesBucketExist($bucket)) {
+            if($this->client->doesObjectExist($bucket, $fileName)){
+                $this->client->deleteObject([
+                    'Bucket' => $bucket,
+                    'Key'    => $fileName,
+                    'ACL'    => 'public-read',
+                ]);
+            }
+        }
+    }
 }
