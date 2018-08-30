@@ -3,6 +3,7 @@
 namespace noam148\imagemanager\components;
 
 use Aws\S3\S3Client;
+use noam148\imagemanager\helpers\ImageHelper;
 use yii\base\Component;
 
 class S3Component extends Component
@@ -35,7 +36,20 @@ class S3Component extends Component
     public function put($fileName, $filePath, $bucket = null)
     {
         $bucket = $bucket ?? $this->defaultBucket;
+        $this->createBucketIfNotExists($bucket);
 
+        $this->client->putObject([
+            'Bucket' => $bucket,
+            'Key'    => $fileName,
+            'Body'   => fopen($filePath, 'r'),
+            'ACL'    => 'public-read',
+        ]);
+    }
+
+
+
+    public function createBucketIfNotExists($bucket)
+    {
         if (!$this->client->doesBucketExist($bucket)) {
             $this->client->createBucket([
                 'ACL' => 'public-read',
@@ -58,13 +72,25 @@ class S3Component extends Component
                 }',
             ]);
         }
+    }
 
-        $this->client->putObject([
-            'Bucket' => $bucket,
-            'Key'    => $fileName,
-            'Body'   => fopen($filePath, 'r'),
-            'ACL'    => 'public-read',
-        ]);
+    public function getObject($fileName, $bucket = null)
+    {
+        $result = null;
+
+        $bucket = $bucket ?? $this->defaultBucket;
+        $bucket = $bucket ?? $this->defaultBucket;
+        if ($this->client->doesBucketExist($bucket)) {
+            if($this->client->doesObjectExist($bucket, $fileName)){
+                $result = $this->client->getObject([
+                    'Bucket' => $bucket,
+                    'Key'    => $fileName,
+                    'SaveAs' => ImageHelper::getTempFilePath($fileName)
+                ]);
+            }
+        }
+
+        return $result;
     }
 
 

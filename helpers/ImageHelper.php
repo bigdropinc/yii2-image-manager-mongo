@@ -82,6 +82,15 @@ class ImageHelper
     }
 
     /**
+     * @param $fileName
+     * @return mixed
+     */
+    public static function getTempFilePath($fileName)
+    {
+        return '/tmp/'. $fileName;
+    }
+
+    /**
      * @param ImageManager $model
      * @return string
      */
@@ -237,7 +246,7 @@ class ImageHelper
     public static function deleteFile(ImageManager $model)
     {
         try {
-            if($model->sizes){
+            if($model->sizes) {
                 foreach ($model->sizes as $key => $size){
                     \Yii::$app->imagemanager->s3->delete(self::getFileName($model), $size);
                     unset($model->sizes[$key]);

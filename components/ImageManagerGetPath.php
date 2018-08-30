@@ -189,45 +189,111 @@ class ImageManagerGetPath extends Component
      */
     public function cropImage(Model $modelOriginal, $cropData)
     {
-        $imagePathPrivate = ImageHelper::getFilePath($modelOriginal);
+        if($this->useS3) {
+            return $this->cropImageS3($modelOriginal, $cropData);
+        } else {
+            $imagePathPrivate = ImageHelper::getFilePath($modelOriginal);
 
-        if ($imagePathPrivate && $cropData) {
-            $width = round($cropData['width']);
-            $height = round($cropData['height']);
+            if ($imagePathPrivate && $cropData) {
+                $width = round($cropData['width']);
+                $height = round($cropData['height']);
 
-            $model = new Model([
-                'fileName' => ImageHelper::getCropFileName($modelOriginal, $width, $height),
-            ]);
+                $model = new Model([
+                    'fileName' => ImageHelper::getCropFileName($modelOriginal, $width, $height),
+                ]);
 
-            if ($model->save()) {
-                try {
-                    $imageOriginal = Image::getImagine()->open($imagePathPrivate);
-                    $imageOriginalSize = $imageOriginal->getSize();
+                if ($model->save()) {
+                    try {
+                        $imageOriginal = Image::getImagine()->open($imagePathPrivate);
+                        $imageOriginalSize = $imageOriginal->getSize();
 
-                    list($imageCanvasWidth, $imageOriginalPositionX, $imageCropPositionXRounded)
-                        = $this->handlingCropData($cropData['x'], $cropData['width'], $imageOriginalSize->getWidth());
-                    list($imageCanvasHeight, $imageOriginalPositionY, $imageCropPositionYRounded)
-                        = $this->handlingCropData($cropData['y'], $cropData['height'], $imageOriginalSize->getHeight());
+                        list($imageCanvasWidth, $imageOriginalPositionX, $imageCropPositionXRounded)
+                            = $this->handlingCropData($cropData['x'], $cropData['width'], $imageOriginalSize->getWidth());
+                        list($imageCanvasHeight, $imageOriginalPositionY, $imageCropPositionYRounded)
+                            = $this->handlingCropData($cropData['y'], $cropData['height'], $imageOriginalSize->getHeight());
 
-                    Image::getImagine()->create(new Box($imageCanvasWidth, $imageCanvasHeight), (new RGB())->color('#FFF', 0))
-                        ->paste($imageOriginal, new Point($imageOriginalPositionX, $imageOriginalPositionY))
-                        ->rotate(round($cropData['rotate']))
-                        ->crop(new Point($imageCropPositionXRounded, $imageCropPositionYRounded), new Box($width, $height))
-                        ->save(ImageHelper::getFilePath($model));
+                        Image::getImagine()->create(new Box($imageCanvasWidth, $imageCanvasHeight), (new RGB())->color('#FFF', 0))
+                            ->paste($imageOriginal, new Point($imageOriginalPositionX, $imageOriginalPositionY))
+                            ->rotate(round($cropData['rotate']))
+                            ->crop(new Point($imageCropPositionXRounded, $imageCropPositionYRounded), new Box($width, $height))
+                            ->save(ImageHelper::getFilePath($model));
 
-                    /** @var Module $module */
-                    $module = \Yii::$app->controller->module;
-                    if ($module->deleteOriginalAfterEdit) {
-                        $modelOriginal->delete();
+                        /** @var Module $module */
+                        $module = \Yii::$app->controller->module;
+                        if ($module->deleteOriginalAfterEdit) {
+                            $modelOriginal->delete();
+                        }
+                    } catch (\Exception $e) {
+                        $model->delete();
                     }
-                } catch (\Exception $e) {
-                    $model->delete();
                 }
+            }
+
+            return isset($model) ? $model->id : null;
+        }
+
+    }
+
+    protected function cropImageS3(Model $modelOriginal, $cropData)
+    {
+        $width = round($cropData['width']);
+        $height = round($cropData['height']);
+
+        $model = new Model([
+            'fileName' => ImageHelper::getCropFileName($modelOriginal, $width, $height),
+        ]);
+
+        $fileName = ImageHelper::getFileName($modelOriginal);
+        if($model->save()) {
+            try {
+                if (!$object = $this->s3->getObject($fileName)) {
+                    throw new \Exception('S3 file not found');
+                }
+                $fileExtension = ImageHelper::getFileExtension($model);
+
+                if ($fileExtension === 'gif') {
+                    Image::getImagine()->open(ImageHelper::getTempFilePath($fileName))->save();
+                }
+
+                $imageOriginal = Image::getImagine()->open(ImageHelper::getTempFilePath($fileName));
+                $imageOriginalSize = $imageOriginal->getSize();
+
+                list($imageCanvasWidth, $imageOriginalPositionX, $imageCropPositionXRounded)
+                    = $this->handlingCropData($cropData['x'], $cropData['width'], $imageOriginalSize->getWidth());
+                list($imageCanvasHeight, $imageOriginalPositionY, $imageCropPositionYRounded)
+                    = $this->handlingCropData($cropData['y'], $cropData['height'], $imageOriginalSize->getHeight());
+
+                Image::getImagine()->create(new Box($imageCanvasWidth, $imageCanvasHeight), (new RGB())->color('#FFF', 0))
+                    ->paste($imageOriginal, new Point($imageOriginalPositionX, $imageOriginalPositionY))
+                    ->rotate(round($cropData['rotate']))
+                    ->crop(new Point($imageCropPositionXRounded, $imageCropPositionYRounded), new Box($width, $height))
+                    ->save(ImageHelper::getTempFilePath($model->fileName));
+
+                $this->s3->put(ImageHelper::getFileName($model), ImageHelper::getTempFilePath($model->fileName));
+
+                $this->createS3Thumb(ImageHelper::getTempFilePath($model->fileName), $model);
+            } catch (\Exception $exception) {
+                $model->delete();
             }
         }
 
         return isset($model) ? $model->id : null;
     }
+
+    public function createS3Thumb($originFilePath, Model $model)
+    {
+        $fileExtension = ImageHelper::getFileExtension($model);
+
+        if ($fileExtension === 'gif') {
+            Image::getImagine()->open($originFilePath)->save();
+        }
+
+        $sizeName = ImageHelper::getSizeName(300, 300);
+        $path = ImageHelper::getPathByUrl(ImageHelper::getThumbByUrl($originFilePath, 300, 300, 'inset', '@frontend/web', $fileName));
+        $this->s3->put(ImageHelper::getFileName($model), \Yii::getAlias($path), $sizeName);
+        $model->updateAttributes(['sizes' => [$sizeName]]);
+    }
+
 
     /**
      * @param integer $coordinate
@@ -287,17 +353,7 @@ class ImageManagerGetPath extends Component
                         $this->s3->put($fileName, $file->tempName);
 
                         if (in_array(ImageHelper::getFileExtension($model), Module::IMAGE_EXTENSIONS)) {
-                            if ($fileExtension === 'gif') {
-                                Image::getImagine()->open($file->tempName)->save();
-                            }
-
-                            $sizeName = ImageHelper::getSizeName(300, 300);
-
-                            $path = ImageHelper::getPathByUrl(ImageHelper::getThumbByUrl($file->tempName, 300, 300, 'inset', '@frontend/web', $fileName));
-
-                            $this->s3->put(ImageHelper::getFileName($model), \Yii::getAlias($path), $sizeName);
-
-                            $model->updateAttributes(['sizes' => [$sizeName]]);
+                            $this->createS3Thumb($file->tempName, $model);
                         }
                     } else {
                         $file->saveAs(ImageHelper::getFilePath($model));
