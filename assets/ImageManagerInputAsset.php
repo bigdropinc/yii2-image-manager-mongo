@@ -7,7 +7,7 @@ use yii\web\AssetBundle;
  */
 class ImageManagerInputAsset extends AssetBundle
 {
-    public $sourcePath = '@vendor/kolyasiryk/yii2-image-manager-mongo/assets/source';
+    public $sourcePath = '@vendor/bigdropinc/yii2-image-manager-mongo/assets/source';
     public $css = [
 		'css/imagemanager.input.css',
     ];

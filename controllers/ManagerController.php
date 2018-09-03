@@ -93,7 +93,7 @@ class ManagerController extends Controller
             'sort'=> ['defaultOrder' => ['created'=>SORT_DESC]]
         ]);
 
-        return $this->render('@vendor/kolyasiryk/yii2-image-manager-mongo/views/manager/index', [
+        return $this->render('@vendor/bigdropinc/yii2-image-manager-mongo/views/manager/index', [
             'searchModel' => $searchModel,
             'imageDataProvider' => $imageDataProvider,
             'fileDataProvider' => $fileDataProvider,

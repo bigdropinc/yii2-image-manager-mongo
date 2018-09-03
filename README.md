@@ -10,12 +10,12 @@ The preferred way to install this extension is through [composer](http://getcomp
 * Either run
 
 ```
-php composer.phar require "kolyasiryk/yii2-image-manager-mongo" "*" 
+php composer.phar require "bigdropinc/yii2-image-manager-mongo" "*" 
 ```
 or add
 
 ```json
-"kolyasiryk/yii2-image-manager-mongo" : "*"
+"bigdropinc/yii2-image-manager-mongo" : "*"
 ```
 
 to the require section of your application's `composer.json` file.
