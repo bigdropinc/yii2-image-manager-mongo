@@ -119,7 +119,49 @@ class ImageManagerGetPath extends Component
      * @return null|string Full path is returned when image is found, null if no image could be found
      * @throws Exception
      */
-    public function getImagePath($model, $width = 400, $height = 400, $thumbnailMode = "outbound", $timestamp = false)
+    public function getImagePath($model, $width = 400, $height = 400, $thumbnailMode = "inset", $timestamp = false)
+    {
+        if($this->useS3) {
+            return $this->getImagePathS3($model, $width, $height, $thumbnailMode);
+        } else {
+            return $this->getImagePathLocal($model, $width, $height, $thumbnailMode, $timestamp);
+        }
+    }
+
+    protected function getImagePathS3($model, $width = 400, $height = 400, $thumbnailMode = "outbound")
+    {
+        $result = null;
+
+        if (is_object($model) || (is_string($model) && ($model = Model::findOne($model)))) {
+
+            /**
+             *@var $model Model
+             */
+
+            $fileExtension = ImageHelper::getFileExtension($model);
+            if(in_array($fileExtension, Module::IMAGE_EXTENSIONS)){
+                if(!$this->checkS3ThumbExist($model, $width, $height, $thumbnailMode)){
+                    $name = ImageHelper::getFileName($model);
+
+                    if ($object = $this->s3->getObject($name)) {
+
+
+                        if ($fileExtension === 'gif') {
+                            Image::getImagine()->open(ImageHelper::getTempFilePath($name))->save();
+                        }
+                        $this->createS3Thumb(ImageHelper::getTempFilePath($name), $model, $width, $height, $thumbnailMode);
+                    }
+                }
+
+                $result = ImageHelper::getThumbS3Url($model, $width , $height, $thumbnailMode);
+            }
+        }
+
+        return $result;
+    }
+
+
+    protected function getImagePathLocal($model, $width = 400, $height = 400, $thumbnailMode = "outbound", $timestamp = false)
     {
         if (is_object($model) || (is_string($model) && ($model = Model::findOne($model)))) {
             /** @var Model $model */
@@ -280,18 +322,58 @@ class ImageManagerGetPath extends Component
         return isset($model) ? $model->id : null;
     }
 
-    public function createS3Thumb($originFilePath, Model $model)
+    public function createS3Thumb($originFilePath, Model $model, $width = 300, $height = 300, $mode = 'inset')
     {
-        $fileExtension = ImageHelper::getFileExtension($model);
+        try {
+            $fileExtension = ImageHelper::getFileExtension($model);
 
-        if ($fileExtension === 'gif') {
-            Image::getImagine()->open($originFilePath)->save();
+            if ($fileExtension === 'gif') {
+                Image::getImagine()->open($originFilePath)->save();
+            }
+
+            $sizeName = ImageHelper::getSizeName($width, $height, $mode);
+            $path = ImageHelper::getPathByUrl(ImageHelper::getThumbByUrl($originFilePath, $width, $height, $mode, '@frontend/web', $model->fileName));
+            $this->s3->put(ImageHelper::getFileName($model), \Yii::getAlias($path), $sizeName);
+
+            $sizeNames = [];
+
+            if($model->sizes){
+                $sizeNames = $model->sizes;
+            }
+
+            $sizeNames[] = $sizeName;
+
+            if($model->updateAttributes(['sizes' => $sizeNames])){
+                $result = true;
+            } else {
+                $this->s3->delete(ImageHelper::getFileName($model), $sizeName);
+                throw new \Exception('Error while update attributes');
+            }
+        } catch (\Exception $e) {
+            $result = false;
         }
 
-        $sizeName = ImageHelper::getSizeName(300, 300);
-        $path = ImageHelper::getPathByUrl(ImageHelper::getThumbByUrl($originFilePath, 300, 300, 'inset', '@frontend/web', $fileName));
-        $this->s3->put(ImageHelper::getFileName($model), \Yii::getAlias($path), $sizeName);
-        $model->updateAttributes(['sizes' => [$sizeName]]);
+        return $result;
+    }
+
+    public function checkS3ThumbExist(Model $model, $width = 300, $height = 300, $mode = 'insert')
+    {
+        $result = false;
+        $sizeName = ImageHelper::getSizeName($width, $height, $mode);
+
+        if(!$sizes = $model->sizes) {
+            $sizes = [];
+        }
+
+        foreach ($sizes as $size)
+        {
+            if($size == $sizeName){
+                $result = true;
+                break;
+            }
+        }
+
+        return $result;
     }
 
 
@@ -363,5 +445,14 @@ class ImageManagerGetPath extends Component
         }
 
         return isset($model) ? ImageHelper::getFileExtension($model) : 'jpg';
+    }
+
+    public function delete(Model $model)
+    {
+        if($this->useS3){
+            return ImageHelper::deleteS3File($model);
+        } else {
+            return (bool)$model->delete();
+        }
     }
 }

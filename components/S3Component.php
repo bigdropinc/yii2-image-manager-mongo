@@ -79,7 +79,7 @@ class S3Component extends Component
         $result = null;
 
         $bucket = $bucket ?? $this->defaultBucket;
-        $bucket = $bucket ?? $this->defaultBucket;
+
         if ($this->client->doesBucketExist($bucket)) {
             if($this->client->doesObjectExist($bucket, $fileName)){
                 $result = $this->client->getObject([
@@ -93,6 +93,18 @@ class S3Component extends Component
         return $result;
     }
 
+    public function doesObjectExist($fileName, $bucket = null)
+    {
+        $result = false;
+
+        $bucket = $bucket ?? $this->defaultBucket;
+
+        if ($this->client->doesBucketExist($bucket)) {
+            $result = $this->client->doesObjectExist($bucket, $fileName);
+        }
+
+        return $result;
+    }
 
     public function delete($fileName, $bucket = null)
     {

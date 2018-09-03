@@ -43,30 +43,32 @@ class ImageHelper
     }
 
     /**
-     * @param ImageManager $model
+     * @param ImageManager|string $model
      * @param string|bool|null $absolute
      * @return string
      */
     public static function getImageUrl($model, $absolute = null)
     {
-        if (!$model) return null;
+        if (is_object($model) || (is_string($model) && ($model = ImageManager::findOne($model)))) {
+            if (\Yii::$app->imagemanager->useS3) {
+                return \Yii::$app->imagemanager->s3Url . 'dci/' . self::getFileName($model);
+            }
 
-        if (\Yii::$app->imagemanager->useS3) {
-            return \Yii::$app->imagemanager->s3Url . 'dci/' . self::getFileName($model);
+            $url = sprintf('%s/%s/%s',
+                \Yii::$app->imagemanager->yiiMediaPath,
+                self::getDir($model),
+                self::getFileName($model));
+
+            return Url::to($url, $absolute ?? \Yii::$app->imagemanager->absoluteUrl);
         }
 
-        $url = sprintf('%s/%s/%s',
-            \Yii::$app->imagemanager->yiiMediaPath,
-            self::getDir($model),
-            self::getFileName($model));
-
-        return Url::to($url, $absolute ?? \Yii::$app->imagemanager->absoluteUrl);
+        return null;
     }
 
-    public static function getThumbUrl($model, $width, $height)
+    public static function getThumbS3Url($model, $width, $height, $mode = 'inset')
     {
-        if ($model && in_array(self::getSizeName($width, $height), (array) $model->sizes)) {
-            return \Yii::$app->imagemanager->s3Url . self::getSizeName($width, $height) . '/' . self::getFileName($model);
+        if ($model && in_array(self::getSizeName($width, $height, $mode), (array) $model->sizes)) {
+            return \Yii::$app->imagemanager->s3Url . self::getSizeName($width, $height, $mode) . '/' . self::getFileName($model);
         }
 
         return null;
@@ -99,9 +101,9 @@ class ImageHelper
         return sprintf('%s_%s.%s', $model->id, $model->fileHash, self::getFileExtension($model));
     }
 
-    public static function getSizeName($width, $height)
+    public static function getSizeName($width, $height, $mode = 'insert')
     {
-        return "{$width}x{$height}";
+        return "{$width}x{$height}-{$mode}";
     }
 
     /**
@@ -243,12 +245,12 @@ class ImageHelper
      * @param ImageManager $model
      * @return bool
      */
-    public static function deleteFile(ImageManager $model)
+    public static function deleteS3File(ImageManager $model)
     {
         try {
             if($model->sizes) {
                 foreach ($model->sizes as $key => $size){
-                    \Yii::$app->imagemanager->s3->delete(self::getFileName($model), $size);
+                   // \Yii::$app->imagemanager->s3->delete(self::getFileName($model), $size);
                     unset($model->sizes[$key]);
                     $model->save();
                 }
@@ -256,7 +258,7 @@ class ImageHelper
 
             \Yii::$app->imagemanager->s3->delete(self::getFileName($model));
 
-            $result = boolval($model->delete());
+            $result = (bool)$model->delete();
         } catch (\Exception $e) {
             $result = false;
         }

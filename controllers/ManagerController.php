@@ -168,7 +168,7 @@ class ManagerController extends Controller
                         'multiple' => true,
                     ],
                 ]) . Html::script(implode('', array_map('implode', $this->view->js))),
-            'image' => ImageHelper::getThumbUrl($model, 300, 300),
+            'image' => ImageHelper::getThumbS3Url($model, 300, 300),
         ];
     }
 
@@ -210,7 +210,7 @@ class ManagerController extends Controller
         $result = false;
 
         if (Yii::$app->controller->module->canRemoveImage != false && $model = $this->findModel(Yii::$app->request->post("ImageManager_id"))) {
-            $result = ImageHelper::deleteFile($model);
+            $result = Yii::$app->imagemanager->delete($model);
         }
 
         return ['delete' => $result];

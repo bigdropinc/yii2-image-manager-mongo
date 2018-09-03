@@ -43,17 +43,13 @@ class ThumbsBehavior extends Behavior
                 if (!is_array($attribute)) {
                     $attribute = [$attribute];
                 }
-                
+
                 foreach ($attribute as $model) {
-                    $sizeName = ImageHelper::getSizeName($size['width'], $size['height']);
+                    $mode = $size['mode'] ?? 'inset';
+                    $sizeName = ImageHelper::getSizeName($size['width'], $size['height'], $mode);
 
                     if (in_array($sizeName, (array) $model->sizes)) continue;
-
-                    $path = ImageHelper::getPathByUrl(ImageHelper::getThumbByUrl($model, $size['width'], $size['height']));
-
-                    \Yii::$app->imagemanager->s3->put(ImageHelper::getFileName($model), \Yii::getAlias($path), $sizeName);
-
-                    $model->updateAttributes(['sizes' => ArrayHelper::merge((array) $model->sizes, [$sizeName])]);
+                    \Yii::$app->imagemanager->getImagePath($model, $size['width'], $size['height'], $mode);
                 }
             }
         }
