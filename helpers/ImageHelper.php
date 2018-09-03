@@ -250,7 +250,7 @@ class ImageHelper
         try {
             if($model->sizes) {
                 foreach ($model->sizes as $key => $size){
-                   // \Yii::$app->imagemanager->s3->delete(self::getFileName($model), $size);
+                    \Yii::$app->imagemanager->s3->delete(self::getFileName($model), $size);
                     unset($model->sizes[$key]);
                     $model->save();
                 }
