@@ -154,8 +154,10 @@ class ImageHelper
     {
         $path = parse_url($url, PHP_URL_PATH);
 
-        if (strpos($path, \Yii::$app->request->baseUrl) === 0) {
-            $path = substr($path, strlen(\Yii::$app->request->baseUrl));
+        if($path && \Yii::$app->request->baseUrl){
+            if (strpos($path, \Yii::$app->request->baseUrl) === 0) {
+                $path = substr($path, strlen(\Yii::$app->request->baseUrl));
+            }
         }
 
         return $alias . $path;
