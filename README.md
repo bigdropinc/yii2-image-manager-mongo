@@ -35,10 +35,14 @@ to the require section of your application's `composer.json` file.
 		//show full url (for example in case of a API)
 		'absoluteUrl' => false,
 		'databaseComponent' => 'db' // The used database component by the image manager, this defaults to the Yii::$app->db component
-		's3Url' => 'http://localhost:9001/',
+        'useTinyPng' => true,
+       
+        'useS3' => true,
         's3Configuration' => [
             'key' => 'key',
             'secret' => 'key123',
+	        's3Url' => 'http://localhost:9001/',
+            //endpoint set only for local version of services such as minio
             'endpoint' => 'http://localhost:9000',
             'defaultBucket' => 'default',
         ]

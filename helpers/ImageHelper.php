@@ -51,7 +51,7 @@ class ImageHelper
     {
         if (is_object($model) || (is_string($model) && ($model = ImageManager::findOne($model)))) {
             if (\Yii::$app->imagemanager->useS3) {
-                return \Yii::$app->imagemanager->s3Url . 'dci/' . self::getFileName($model);
+                return self::getS3FileFullURL(self::getFileName($model));
             }
 
             $url = sprintf('%s/%s/%s',
@@ -65,10 +65,39 @@ class ImageHelper
         return null;
     }
 
+    public static function getS3FileRelativePathByFolder($fileName, $folder = null)
+    {
+        $filePath = '';
+
+        if($folder){
+            $filePath = $folder . '/';
+        }
+
+        return $filePath . $fileName;
+    }
+
+    public static function getS3FileRelativePath($fileName, $width = null, $height = null, $mode = 'inset')
+    {
+        $folder = null;
+
+        if($width && $height && $mode){
+            $folder = self::getSizeName($width, $height, $mode);
+        }
+        return self::getS3FileRelativePathByFolder($fileName, $folder);
+    }
+
+
+
+    public static function getS3FileFullURL($fileName, $width = null, $height = null, $mode = 'inset')
+    {
+        return \Yii::$app->imagemanager->s3->s3Url . '/' . \Yii::$app->imagemanager->s3->defaultBucket . '/' . self::getS3FileRelativePath($fileName, $width, $height, $mode);
+    }
+
     public static function getThumbS3Url($model, $width, $height, $mode = 'inset')
     {
         if ($model && in_array(self::getSizeName($width, $height, $mode), (array) $model->sizes)) {
-            return \Yii::$app->imagemanager->s3Url . self::getSizeName($width, $height, $mode) . '/' . self::getFileName($model);
+
+            return self::getS3FileFullURL(self::getFileName($model), $width, $height, $mode);
         }
 
         return null;

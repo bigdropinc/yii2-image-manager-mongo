@@ -64,8 +64,6 @@ class ImageManagerGetPath extends Component
     public $useS3 = false;
 
     public $s3Component = 's3';
-    
-    public $s3Url;
 
     public $s3Configuration;
 
@@ -139,6 +137,7 @@ class ImageManagerGetPath extends Component
              */
 
             $fileExtension = ImageHelper::getFileExtension($model);
+
             if(in_array($fileExtension, Module::IMAGE_EXTENSIONS)){
                 if(!$this->checkS3ThumbExist($model, $width, $height, $thumbnailMode)){
                     $name = ImageHelper::getFileName($model);

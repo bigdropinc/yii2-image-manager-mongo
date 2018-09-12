@@ -16,30 +16,40 @@ class S3Component extends Component
 
     public $defaultBucket;
 
+    public $s3Url = '';
+
     /** @var S3Client */
     protected $client;
 
     public function init()
     {
-        $this->client = new S3Client([
+        $configs = [
             'version' => 'latest',
             'region'  => 'us-east-1',
             'credentials' => [
                 'key' => $this->key,
                 'secret' => $this->secret,
             ],
-            'endpoint' => $this->endpoint,
             'use_path_style_endpoint' => true,
-        ]);
+        ];
+
+        if($this->endpoint){
+            $configs['endpoint'] = $this->endpoint;
+        }
+
+        $this->client = new S3Client($configs);
     }
 
-    public function put($fileName, $filePath, $bucket = null)
+    public function put($fileName, $filePath, $folder = null)
     {
-        $bucket = $bucket ?? $this->defaultBucket;
-        $this->createBucketIfNotExists($bucket);
+        if($folder){
+            $this->createFolderIfNotExists($folder);
+        }
+
+        $fileName = ImageHelper::getS3FileRelativePathByFolder($fileName, $folder);
 
         $this->client->putObject([
-            'Bucket' => $bucket,
+            'Bucket' => $this->defaultBucket,
             'Key'    => $fileName,
             'Body'   => fopen($filePath, 'r'),
             'ACL'    => 'public-read',
@@ -71,6 +81,18 @@ class S3Component extends Component
                   ]
                 }',
             ]);
+        }
+    }
+
+    public function createFolderIfNotExists($folder)
+    {
+        if (!$this->client->doesObjectExist($this->defaultBucket, $folder)) {
+            $this->client->putObject(array(
+                'Bucket' => $this->defaultBucket,
+                'Key'    => $folder . '/',
+                'Body'   => "",
+                'ACL'    => 'public-read'
+            ));
         }
     }
 
@@ -106,17 +128,16 @@ class S3Component extends Component
         return $result;
     }
 
-    public function delete($fileName, $bucket = null)
+    public function delete($fileName, $folder = null)
     {
-        $bucket = $bucket ?? $this->defaultBucket;
-        if ($this->client->doesBucketExist($bucket)) {
-            if($this->client->doesObjectExist($bucket, $fileName)){
-                $this->client->deleteObject([
-                    'Bucket' => $bucket,
-                    'Key'    => $fileName,
-                    'ACL'    => 'public-read',
-                ]);
-            }
+        $fileName = ImageHelper::getS3FileRelativePathByFolder($fileName, $folder);
+
+        if($this->client->doesObjectExist($this->defaultBucket, $fileName)){
+            $this->client->deleteObject([
+                'Bucket' => $this->defaultBucket,
+                'Key'    => $fileName,
+                'ACL'    => 'public-read',
+            ]);
         }
     }
 }
