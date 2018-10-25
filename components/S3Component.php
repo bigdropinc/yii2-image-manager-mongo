@@ -56,7 +56,15 @@ class S3Component extends Component
         ]);
     }
 
-
+    public function copy($oldName, $newName)
+    {
+        return $this->client->copyObject([
+            'ACL' => 'public-read',
+            'Bucket' => $this->defaultBucket,
+            'Key' => $newName,
+            'CopySource' => urlencode($this->defaultBucket . '/' . $oldName),
+        ]);
+    }
 
     public function createBucketIfNotExists($bucket)
     {
