@@ -90,6 +90,9 @@ class ImageHelper
 
     public static function getS3FileFullURL($fileName, $width = null, $height = null, $mode = 'inset')
     {
+	if (\Yii::$app->imagemanager->cdnUrl) {
+            return \Yii::$app->imagemanager->cdnUrl . '/' . self::getS3FileRelativePath($fileName, $width, $height, $mode);
+        }
         return \Yii::$app->imagemanager->s3->s3Url . '/' . \Yii::$app->imagemanager->s3->defaultBucket . '/' . self::getS3FileRelativePath($fileName, $width, $height, $mode);
     }
 

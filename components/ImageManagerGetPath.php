@@ -73,6 +73,8 @@ class ImageManagerGetPath extends Component
     
     public $tinyPngComponent = 'tinyPng';
 
+    public $cdnUrl = null;
+
     /**
      * Init set config
      *
