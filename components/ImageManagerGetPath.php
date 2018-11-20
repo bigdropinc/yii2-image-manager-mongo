@@ -422,25 +422,32 @@ class ImageManagerGetPath extends Component
         foreach (UploadedFile::getInstancesByName('imagemanagerFiles') as $file) {
             if (!$file->error) {
                 $model = new Model();
-                $model->fileName = str_replace("_", "-", $file->getBaseName()) . '.' . mb_strtolower($file->getExtension());
-                $model->tags = $tags;
+                try{
+                    $model->fileName = str_replace("_", "-", $file->getBaseName()) . '.' . mb_strtolower($file->getExtension());
+                    $model->tags = $tags;
 
-                if ($model->save()) {
-                    if ($this->useTinyPng && in_array($file->getExtension(), ['jpg', 'jpeg', 'png'])) {
-                        \Yii::$app->get($this->tinyPngComponent)->compress($file->tempName);
-                    }
-
-                    if ($this->useS3) {
-                        $fileName = ImageHelper::getFileName($model);
-
-                        $this->s3->put($fileName, $file->tempName);
-
-                        if (in_array(ImageHelper::getFileExtension($model), Module::IMAGE_EXTENSIONS)) {
-                            $this->createS3Thumb($file->tempName, $model);
+                    if ($model->save()) {
+                        if ($this->useTinyPng && in_array($file->getExtension(), ['jpg', 'jpeg', 'png'])) {
+                            \Yii::$app->get($this->tinyPngComponent)->compress($file->tempName);
                         }
-                    } else {
-                        $file->saveAs(ImageHelper::getFilePath($model));
+
+                        if ($this->useS3) {
+                            $fileName = ImageHelper::getFileName($model);
+
+                            $this->s3->put($fileName, $file->tempName);
+
+                            if (in_array(ImageHelper::getFileExtension($model), Module::IMAGE_EXTENSIONS)) {
+                                $this->createS3Thumb($file->tempName, $model);
+                            }
+                        } else {
+                            $file->saveAs(ImageHelper::getFilePath($model));
+                        }
                     }
+                }catch (\Throwable $throwable){
+                    if($model->created == $model->modified){
+                        $this->delete($model);
+                    }
+                    throw new \Exception($throwable->getMessage());
                 }
             }
         }
