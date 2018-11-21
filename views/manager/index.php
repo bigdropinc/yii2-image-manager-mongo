@@ -171,6 +171,7 @@ $this->title = Yii::t('imagemanager','File manager');
                     'showCaption' => false,
                     'showCancel' => false,
                     'maxFileSize' => \Yii::$app->imagemanager->maxFileSize,
+                    'maxFileCount' => \Yii::$app->imagemanager->maxFileCount,
                     'uploadUrl' => Url::to(['manager/upload']),
                     'uploadExtraData' => new \yii\web\JsExpression('function() {
                             var result = {}; 
