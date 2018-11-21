@@ -59,6 +59,10 @@ class ImageManagerGetPath extends Component
      * @var int The maximum file size for upload in KB
      */
     public $maxFileSize = 10000;
+    /**
+     * @var int The maximum file count
+     */
+    public $maxFileCount = 100;
 
     /** @var bool */
     public $useS3 = false;
