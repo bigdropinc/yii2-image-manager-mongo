@@ -417,15 +417,16 @@ class ImageManagerGetPath extends Component
     }
 
     /**
-     * @return string
+     * @return Model
      */
     public function uploadImage()
     {
         $tags = \Yii::$app->request->post('tags', []);
 
+        $model = new Model();
         foreach (UploadedFile::getInstancesByName('imagemanagerFiles') as $file) {
             if (!$file->error) {
-                $model = new Model();
+
                 try{
                     $model->fileName = str_replace("_", "-", $file->getBaseName()) . '.' . mb_strtolower($file->getExtension());
                     $model->tags = $tags;
@@ -456,7 +457,7 @@ class ImageManagerGetPath extends Component
             }
         }
 
-        return isset($model) ? ImageHelper::getFileExtension($model) : 'jpg';
+        return $model;
     }
 
     public function delete(Model $model)
