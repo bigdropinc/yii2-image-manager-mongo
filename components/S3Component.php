@@ -52,6 +52,7 @@ class S3Component extends Component
             'Bucket' => $this->defaultBucket,
             'Key'    => $fileName,
             'Body'   => fopen($filePath, 'r'),
+            'ContentType' => mime_content_type($filePath) ?? 'image/png',
             'ACL'    => 'public-read',
         ]);
     }
